@@ -79,7 +79,9 @@ const LandingPage = () => {
             <div className="flex justify-center gap-6">
               <button className="group bg-gradient-to-r from-fuchsia-500 to-cyan-400 p-[2px] rounded-lg">
                 <div className="bg-black px-8 py-3 rounded-lg flex items-center gap-2 group-hover:bg-transparent transition-colors">
-                  Start Learning <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  <a href="/dashboard">
+                  Start Learning 
+                  </a>
                 </div>
               </button>
               <button className="px-8 py-3 rounded-lg border border-gray-700 hover:border-fuchsia-500 transition-colors">
