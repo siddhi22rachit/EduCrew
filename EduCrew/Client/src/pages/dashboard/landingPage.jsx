@@ -58,49 +58,7 @@ const Dashboard = () => {
         ))}
       </div>
 
-      {/* Sidebar */}
-      <div className="w-48 bg-gray-900/50 backdrop-blur-xl border-r border-gray-800 flex flex-col items-center py-4 gap-6 z-10">
-        {/* Logo */}
-        <a 
-          href="/" 
-          className="text-xl font-bold bg-gradient-to-r from-fuchsia-500 to-cyan-400 bg-clip-text text-transparent hover:scale-105 transition-transform"
-        >
-          StudySync
-        </a>
-
-        {/* Time */}
-        <div className="flex items-center gap-2 text-gray-300 text-lg font-medium bg-gray-800/50 px-4 py-2 rounded-lg">
-          <Clock className="w-4 h-4 text-fuchsia-500" />
-          {formattedTime}
-        </div>
-
-        {/* Nav Items */}
-        <nav className="flex flex-col gap-2 items-center flex-1 w-full px-2">
-          {[
-            { icon: LayoutDashboard, label: 'Dashboard', href: '/dashboard', active: true },
-            { icon: MessageCircle, label: 'Chat', href: '/chat' },
-            { icon: FileText, label: 'Notes', href: '/notes' },
-            { icon: CheckSquare, label: 'Tasks', href: '/tasks' },
-            { icon: Users, label: 'Groups', href: '/groups' },
-            { icon: Calendar, label: 'Calendar', href: '/calendar' },
-            { icon: Video, label: 'Video Calls', href: '/calls' },
-            { icon: BookOpen, label: 'Resources', href: '/resources' }
-          ].map((item) => (
-            <a
-              key={item.label}
-              href={item.href}
-              className={`flex items-center w-full px-3 py-2 rounded-lg transition-all duration-200 hover:bg-fuchsia-500/10 group ${
-                item.active ? 'bg-fuchsia-500/20 text-fuchsia-500' : 'text-gray-400 hover:text-white'
-              }`}
-            >
-              <item.icon className={`w-4 h-4 mr-3 transition-transform group-hover:scale-110 ${
-                item.active ? 'text-fuchsia-500' : ''
-              }`} />
-              <span className="text-sm">{item.label}</span>
-            </a>
-          ))}
-        </nav>
-      </div>
+     
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col z-10">
@@ -179,42 +137,7 @@ const Dashboard = () => {
           </div>
         </main>
 
-        {/* Music Player */}
-        <footer className="h-16 border-t border-gray-800 bg-gray-900/50 backdrop-blur-xl px-4">
-          <div className="max-w-5xl mx-auto h-full flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <img src="/api/placeholder/40/40" alt="Music thumbnail" className="w-10 h-10 rounded" />
-              <div>
-                <div className="text-sm font-medium">Study Music</div>
-                <div className="text-xs text-gray-400">Lo-fi Beats</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-4">
-              <div className="flex items-center gap-2">
-                <button className="text-gray-400 hover:text-white transition-colors">
-                  <SkipBack className="w-4 h-4" />
-                </button>
-                <button className="w-6 h-6 rounded-full bg-fuchsia-500 flex items-center justify-center hover:bg-fuchsia-600 transition-colors">
-                  <Play className="w-4 h-4 text-black" />
-                </button>
-                <button className="text-gray-400 hover:text-white transition-colors">
-                  <SkipForward className="w-4 h-4" />
-                </button>
-              </div>
-              <div className="flex items-center gap-2">
-                <button className="text-gray-400 hover:text-white transition-colors">
-                  <Shuffle className="w-3 h-3" />
-                </button>
-                <button className="text-gray-400 hover:text-white transition-colors">
-                  <Repeat className="w-3 h-3" />
-                </button>
-                <button className="text-gray-400 hover:text-white transition-colors">
-                  <Volume2 className="w-3 h-3" />
-                </button>
-              </div>
-            </div>
-          </div>
-        </footer>
+       
       </div>
     </div>
   );
