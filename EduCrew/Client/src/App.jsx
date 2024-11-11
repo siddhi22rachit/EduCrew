@@ -5,6 +5,7 @@ import Dashboard from "./pages/dashboard/landingPage";
 import GroupView from "./pages/dashboard/group";
 import DashboardLayout from "./pages/dashboard/DashboardLayout";
 import CalendarPage from "./pages/dashboard/calender";
+import ResourcesPage from "./pages/dashboard/resources";
 
 export default function App() {
   return (
@@ -21,11 +22,10 @@ export default function App() {
           {/* Dashboard sub-routes */}
           <Route path="group" element={<GroupView />} />
           <Route path="chat" element={<div>Chat Page</div>} />
-          <Route path="notes" element={<div>Notes Page</div>} />
           <Route path="tasks" element={<div>Tasks Page</div>} />
           <Route path="calendar" element={<CalendarPage/>} />
           <Route path="calls" element={<div>Video Calls Page</div>} />
-          <Route path="resources" element={<div>Resources Page</div>} />
+          <Route path="resources" element={<ResourcesPage/>} />
         </Route>
 
         {/* Catch-all route for 404 - place it last */}
