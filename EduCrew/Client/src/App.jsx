@@ -6,6 +6,11 @@ import GroupView from "./pages/dashboard/group";
 import DashboardLayout from "./pages/dashboard/DashboardLayout";
 import CalendarPage from "./pages/dashboard/calender";
 import ResourcesPage from "./pages/dashboard/resources";
+import LoginPage from "./pages/login/login";
+
+import SignupPage from "./pages/login/SignUp";
+import PrivateRoute from "./components/PrivateRoute";
+import Profile from "./pages/profile/profile";
 
 export default function App() {
   return (
@@ -13,6 +18,13 @@ export default function App() {
       <Routes>
         {/* Public route */}
         <Route path="/" element={<LandingPage />} />
+
+        <Route path="/sign-in" element={<LoginPage />} />
+        <Route path="/sign-up" element={<  SignupPage />} />
+
+        <Route element={<PrivateRoute />}>
+          <Route path='/profile' element={<Profile />} />
+        </Route>
         
         {/* Dashboard routes nested under layout */}
         <Route path="/dashboard" element={<DashboardLayout />}>

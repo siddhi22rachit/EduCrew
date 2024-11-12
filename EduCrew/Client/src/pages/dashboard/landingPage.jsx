@@ -18,10 +18,16 @@ import {
   PlusCircle,
   ChevronDown
 } from 'lucide-react';
+import { useSelector } from 'react-redux';
 
 const Dashboard = () => {
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const currentUser = useSelector((state) => state.user.currentUser);
+
+  if (!currentUser) {
+    return null;
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -70,22 +76,44 @@ const Dashboard = () => {
               Start Self Study
             </button>
             <div className="relative">
-              <button 
-                className="flex items-center gap-2 hover:bg-gray-800/50 p-1 rounded-lg transition-colors"
-                onClick={() => setShowProfileMenu(!showProfileMenu)}
-              >
-                <img src="/api/placeholder/32/32" alt="User" className="w-8 h-8 rounded-full border-2 border-fuchsia-500" />
-                <span className="text-sm font-medium">John Doe</span>
-                <ChevronDown className="w-4 h-4 text-gray-400" />
-              </button>
-              {showProfileMenu && (
-                <div className="absolute right-0 mt-2 w-48 bg-gray-900/95 backdrop-blur-xl border border-gray-800 rounded-lg shadow-xl py-1">
-                  <a href="/profile" className="block px-4 py-2 text-sm text-gray-300 hover:bg-fuchsia-500/10 transition-colors">Profile</a>
-                  <a href="/settings" className="block px-4 py-2 text-sm text-gray-300 hover:bg-fuchsia-500/10 transition-colors">Settings</a>
-                  <a href="/logout" className="block px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors">Logout</a>
-                </div>
-              )}
-            </div>
+      <button 
+        className="flex items-center gap-2 hover:bg-gray-800/50 p-1 rounded-lg transition-colors"
+        onClick={() => setShowProfileMenu(!showProfileMenu)}
+      >
+        <img 
+          src={currentUser.profilePicture || "/api/placeholder/32/32"} 
+          alt={currentUser.username} 
+          className="w-8 h-8 rounded-full border-2 border-fuchsia-500" 
+        />
+        <span className="text-sm font-medium">
+          {currentUser.username}
+        </span>
+        <ChevronDown className="w-4 h-4 text-gray-400" />
+      </button>
+      
+      {showProfileMenu && (
+        <div className="absolute right-0 mt-2 w-48 bg-gray-900/95 backdrop-blur-xl border border-gray-800 rounded-lg shadow-xl py-1">
+          <a 
+            href="/profile" 
+            className="block px-4 py-2 text-sm text-gray-300 hover:bg-fuchsia-500/10 transition-colors"
+          >
+            Profile
+          </a>
+          <a 
+            href="/settings" 
+            className="block px-4 py-2 text-sm text-gray-300 hover:bg-fuchsia-500/10 transition-colors"
+          >
+            Settings
+          </a>
+          <a 
+            href="/logout" 
+            className="block px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+          >
+            Logout
+          </a>
+        </div>
+      )}
+    </div>
           </div>
         </header>
 
