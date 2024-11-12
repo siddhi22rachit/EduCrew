@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { ArrowRight, Users, BookOpen, Calendar, MessageCircle, PlusCircle, Brain, Target, Zap, Activity } from 'lucide-react';
+import { Link } from 'react-router-dom';
 
 const LandingPage = () => {
   const [scrolled, setScrolled] = useState(false);
@@ -35,9 +36,7 @@ const LandingPage = () => {
           <div className="flex gap-8">
             <button className="text-gray-300 hover:text-white transition-colors">Features</button>
             <button className="text-gray-300 hover:text-white transition-colors">Rooms</button>
-            <button className="bg-fuchsia-500 hover:bg-fuchsia-600 px-4 py-2 rounded-lg transition-colors">
-              Get Started
-            </button>
+            <button className="text-gray-300 hover:text-white transition-colors">Pricing</button>
           </div>
         </div>
       </nav>
@@ -79,14 +78,12 @@ const LandingPage = () => {
             <div className="flex justify-center gap-6">
               <button className="group bg-gradient-to-r from-fuchsia-500 to-cyan-400 p-[2px] rounded-lg">
                 <div className="bg-black px-8 py-3 rounded-lg flex items-center gap-2 group-hover:bg-transparent transition-colors">
-                  <a href="/dashboard">
+                  <a href="/sign-in">
                   Start Learning 
                   </a>
                 </div>
               </button>
-              <button className="px-8 py-3 rounded-lg border border-gray-700 hover:border-fuchsia-500 transition-colors">
-                Watch Demo
-              </button>
+              
             </div>
           </div>
         </div>
