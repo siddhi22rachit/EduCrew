@@ -87,7 +87,9 @@ const Dashboard = () => {
           <h1 className="text-lg font-semibold">Dashboard</h1>
           <div className="flex items-center gap-4">
             <button className="bg-gradient-to-r from-fuchsia-500/20 to-cyan-400/20 hover:from-fuchsia-500/30 hover:to-cyan-400/30 px-4 py-1.5 rounded-lg transition-all transform hover:scale-105">
-              Start Self Study
+            <a href="/soloStuddy">
+            Start Self Study
+            </a>
             </button>
             <div className="relative">
       <button 
