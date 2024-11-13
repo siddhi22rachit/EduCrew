@@ -1,16 +1,40 @@
 import React, { useState } from 'react';
 import { Mail, Lock, User } from 'lucide-react';
+import OAuth from '../../components/OAuth';
+import { useNavigate } from 'react-router-dom';
 
 const SignUpPage = () => {
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    username: ''
-  });
+  const [error,setError] = useState(null);
+  const [loading,setLoading] = useState(false);
+  const [formData, setFormData] = useState({});
+  const navigate = useNavigate();
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Handle form submission
+    try{
+      setLoading(true);
+      const res= await fetch('/api/auth/signup', {
+        method:'POST',
+        headers:{
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData)
+      });
+      const data = await res.json();
+      console.log(data);
+      setLoading(false);
+      if(data.success ==false){
+        setError(true)
+      }
+      navigate('/sign-in');
+    }
+    catch(error){
+      setLoading(false);
+      setError(true);
+    }
     console.log('Form submitted:', formData);
   };
 
@@ -50,8 +74,9 @@ const SignUpPage = () => {
               <input
                 type="text"
                 placeholder="Username"
+                id='username'
                 className="w-full bg-gray-800 text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                onChange={(e) => setFormData({ ...formData, username: e.target.value })}
+                onChange={handleChange}
               />
             </div>
 
@@ -61,8 +86,9 @@ const SignUpPage = () => {
               <input
                 type="email"
                 placeholder="Email address"
+                id='email'  
                 className="w-full bg-gray-800 text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                onChange={handleChange}
               />
             </div>
 
@@ -72,17 +98,19 @@ const SignUpPage = () => {
               <input
                 type="password"
                 placeholder="Password"
+                id='password'
                 className="w-full bg-gray-800 text-white pl-10 pr-4 py-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500"
-                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                onChange={handleChange}
               />
             </div>
 
             {/* Sign up button */}
             <button
+              disabled={loading}
               type="submit"
               className="w-full flex justify-center py-3 px-4 rounded-lg text-white bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 hover:from-purple-500 hover:via-blue-500 hover:to-cyan-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 transform hover:scale-[1.02] "
             >
-              Sign Up
+              {loading ? 'Loading...' : 'Sign Up'}  
             </button>
 
             <div className="relative flex items-center justify-center gap-3 my-4">
@@ -92,12 +120,7 @@ const SignUpPage = () => {
             </div>
 
             {/* Google sign up button */}
-            <button
-              type="button"
-              className="w-full py-3 rounded-lg bg-gray-800 text-white font-semibold hover:bg-gray-700 transition-colors border border-gray-700"
-            >
-              Continue with Google
-            </button>
+            <OAuth />
           </form>
 
           {/* Sign in link */}

@@ -21,6 +21,7 @@ import {
 import { useSelector } from 'react-redux';
 
 const Dashboard = () => {
+  const [shapes, setShapes] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showProfileMenu, setShowProfileMenu] = useState(false);
   const currentUser = useSelector((state) => state.user.currentUser);
@@ -35,6 +36,17 @@ const Dashboard = () => {
     }, 60000); // Update every minute
 
     return () => clearInterval(timer);
+    const newShapes = Array(5).fill(null).map((_, i) => ({
+      id: i,
+      width: Math.floor(Math.random() * 400 + 200),
+      height: Math.floor(Math.random() * 400 + 200),
+      left: Math.floor(Math.random() * 100),
+      top: Math.floor(Math.random() * 100),
+      delay: i * 2,
+      duration: Math.floor(Math.random() * 10 + 10)
+    }));
+    setShapes(newShapes);
+
   }, []);
 
   const formattedTime = currentTime.toLocaleTimeString([], {
@@ -43,26 +55,28 @@ const Dashboard = () => {
     hour12: true
   });
 
+  
+
   return (
     <div className="min-h-screen bg-black text-white flex relative overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
-        {[...Array(5)].map((_, i) => (
-          <div
-            key={i}
-            className="absolute rounded-full mix-blend-screen filter blur-3xl animate-pulse"
-            style={{
-              background: i % 2 ? 'rgba(236, 72, 153, 0.05)' : 'rgba(34, 211, 238, 0.05)',
-              width: `${Math.random() * 400 + 200}px`,
-              height: `${Math.random() * 400 + 200}px`,
-              left: `${Math.random() * 100}%`,
-              top: `${Math.random() * 100}%`,
-              animationDelay: `${i * 2}s`,
-              animationDuration: `${Math.random() * 10 + 10}s`
-            }}
-          />
-        ))}
-      </div>
+      {shapes.map((shape) => (
+        <div
+          key={shape.id}
+          className="absolute rounded-full mix-blend-screen filter blur-3xl animate-pulse"
+          style={{
+            background: shape.id % 2 ? 'rgba(236, 72, 153, 0.05)' : 'rgba(34, 211, 238, 0.05)',
+            width: `${shape.width}px`,
+            height: `${shape.height}px`,
+            left: `${shape.left}%`,
+            top: `${shape.top}%`,
+            animationDelay: `${shape.delay}s`,
+            animationDuration: `${shape.duration}s`
+          }}
+        />
+      ))}
+    </div>
 
      
 
