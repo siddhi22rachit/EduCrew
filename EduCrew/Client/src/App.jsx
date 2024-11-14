@@ -24,7 +24,7 @@ export default function App() {
 
         <Route element={<PrivateRoute />}>
           <Route path='/profile' element={<Profile />} />
-        </Route>
+        
         
         {/* Dashboard routes nested under layout */}
         <Route path="/dashboard" element={<DashboardLayout />}>
@@ -38,6 +38,8 @@ export default function App() {
           <Route path="calendar" element={<CalendarPage/>} />
           <Route path="calls" element={<div>Video Calls Page</div>} />
           <Route path="resources" element={<ResourcesPage/>} />
+        </Route>
+
         </Route>
 
         {/* Catch-all route for 404 - place it last */}
