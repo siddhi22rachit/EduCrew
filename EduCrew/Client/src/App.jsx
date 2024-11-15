@@ -11,6 +11,10 @@ import LoginPage from "./pages/login/login";
 import SignupPage from "./pages/login/SignUp";
 import PrivateRoute from "./components/PrivateRoute";
 import Profile from "./pages/profile/profile";
+import CreateStudyGroupForm from "./pages/dashboard/CreateStudyGroupForm";
+import VideoCallPage from "./pages/dashboard/videoCall";
+import TaskPage from "./pages/dashboard/task";
+import ChatPage from "./pages/dashboard/chat";
 
 export default function App() {
   return (
@@ -24,21 +28,22 @@ export default function App() {
 
         <Route element={<PrivateRoute />}>
           <Route path='/profile' element={<Profile />} />
-        
-        
-        {/* Dashboard routes nested under layout */}
-        <Route path="/dashboard" element={<DashboardLayout />}>
-          {/* Index route for dashboard */}
-          <Route index element={<Dashboard />} />
-          
-          {/* Dashboard sub-routes */}
-          <Route path="group" element={<GroupView />} />
-          <Route path="chat" element={<div>Chat Page</div>} />
-          <Route path="tasks" element={<div>Tasks Page</div>} />
-          <Route path="calendar" element={<CalendarPage/>} />
-          <Route path="calls" element={<div>Video Calls Page</div>} />
-          <Route path="resources" element={<ResourcesPage/>} />
-        </Route>
+
+
+          {/* Dashboard routes nested under layout */}
+          <Route path="/dashboard" element={<DashboardLayout />}>
+            {/* Index route for dashboard */}
+            <Route index element={<Dashboard />} />
+
+            {/* Dashboard sub-routes */}
+            <Route path="group" element={<GroupView />} />
+            <Route path="chat" element={<ChatPage/>} />
+            <Route path="tasks" element={<TaskPage/>} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="video-calls" element={<VideoCallPage/>} />
+            <Route path="resources" element={<ResourcesPage />} />
+            <Route path="group-form" element={<CreateStudyGroupForm />} />
+          </Route>
 
         </Route>
 
