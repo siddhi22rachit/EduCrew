@@ -3,50 +3,58 @@ import mongoose from 'mongoose';
 import dotenv from 'dotenv';
 import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
+import groupRoutes from './routes/group.route.js';
+import calendarRoutes from './routes/calendar.route.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+
 dotenv.config();
 
+const app = express();
+const PORT = process.env.PORT || 5000;
 
+// MongoDB Connection
 mongoose
-  .connect(process.env.MONGO)
+  .connect(process.env.MONGO, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => {
     console.log('Connected to MongoDB');
   })
   .catch((err) => {
-    console.log(err);
+    console.error('Error connecting to MongoDB:', err.message);
   });
 
-const __dirname = path.resolve();
-
-const app = express();
-
-app.use(express.static(path.join(__dirname, '/client/dist')));
-
+// Middleware
 app.use(cors({ origin: 'http://localhost:5173', credentials: true }));
+app.use(express.json());
+app.use(cookieParser());
 
+// Routes
+app.use('/api/user', userRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/groups', groupRoutes);
+app.use('/api/calendar', calendarRoutes);
+
+
+// Serve Frontend (Static Files)
+const __dirname = path.resolve();
+app.use(express.static(path.join(__dirname, 'client', 'dist')));
+
+// Catch-All Route for React SPA
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'client', 'dist', 'index.html'));
 });
 
-app.use(express.json());
-
-app.use(cookieParser());
-
-app.listen(3000, () => {
-  console.log('Server listening on port 3000');
-});
-
-app.use('/api/user', userRoutes);
-app.use('/api/auth', authRoutes);
-
+// Error Handling Middleware
 app.use((err, req, res, next) => {
   const statusCode = err.statusCode || 500;
-  const message = err.message || 'Internal Server Error';
-  return res.status(statusCode).json({
+  res.status(statusCode).json({
     success: false,
-    message,
-    statusCode,
+    message: err.message || 'Internal Server Error',
   });
+});
+
+// Start Server
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
 });
