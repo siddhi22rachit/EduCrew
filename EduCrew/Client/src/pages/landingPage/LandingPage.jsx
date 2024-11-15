@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ArrowRight, Users, BookOpen, Calendar, MessageCircle, PlusCircle, Brain, Target, Zap, Activity } from 'lucide-react';
+import {  ArrowRight, Users, BookOpen, Calendar, MessageCircle, PlusCircle, Brain, Target, Zap, Activity, Twitter, Instagram, Linkedin, Github } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 const LandingPage = () => {
@@ -31,7 +31,7 @@ const LandingPage = () => {
       }`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center">
           <div className="text-2xl font-bold bg-gradient-to-r from-fuchsia-500 to-cyan-400 bg-clip-text text-transparent">
-            StudySync
+            EduCrew
           </div>
           <div className="flex gap-8">
             <button className="text-gray-300 hover:text-white transition-colors">Features</button>
@@ -196,6 +196,77 @@ const LandingPage = () => {
           </div>
         </div>
       </div>
+      <footer className="bg-gray-900/50 backdrop-blur-xl border-t border-gray-800">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {/* Company Info */}
+            <div className="space-y-4">
+              <div className="text-2xl font-bold bg-gradient-to-r from-fuchsia-500 to-cyan-400 bg-clip-text text-transparent">
+                EduCrew
+              </div>
+              <p className="text-gray-400 text-sm">
+                Revolutionizing the way students learn and collaborate together in the digital age.
+              </p>
+              <div className="flex space-x-4">
+                <Twitter className="w-5 h-5 text-gray-400 hover:text-fuchsia-500 cursor-pointer transition-colors" />
+                <Instagram className="w-5 h-5 text-gray-400 hover:text-fuchsia-500 cursor-pointer transition-colors" />
+                <Linkedin className="w-5 h-5 text-gray-400 hover:text-fuchsia-500 cursor-pointer transition-colors" />
+                <Github className="w-5 h-5 text-gray-400 hover:text-fuchsia-500 cursor-pointer transition-colors" />
+              </div>
+            </div>
+
+            {/* Quick Links */}
+            <div>
+              <h3 className="font-semibold mb-4">Quick Links</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">About Us</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Features</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Pricing</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Blog</a></li>
+              </ul>
+            </div>
+
+            {/* Support */}
+            <div>
+              <h3 className="font-semibold mb-4">Support</h3>
+              <ul className="space-y-2">
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Help Center</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Community</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Contact Us</a></li>
+                <li><a href="#" className="text-gray-400 hover:text-white transition-colors">Status</a></li>
+              </ul>
+            </div>
+
+            {/* Newsletter */}
+            <div>
+              <h3 className="font-semibold mb-4">Stay Updated</h3>
+              <p className="text-gray-400 text-sm mb-4">Subscribe to our newsletter for the latest updates.</p>
+              <div className="flex">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  className="bg-gray-800 text-white px-4 py-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-fuchsia-500 flex-grow"
+                />
+                <button className="bg-gradient-to-r from-fuchsia-500 to-cyan-400 px-4 py-2 rounded-r-lg hover:opacity-90 transition-opacity">
+                  Subscribe
+                </button>
+              </div>
+            </div>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
+            <p className="text-gray-400 text-sm">
+              © {new Date().getFullYear()} EduCrew. All rights reserved.
+            </p>
+            <div className="flex space-x-6 mt-4 md:mt-0">
+              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Privacy Policy</a>
+              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Terms of Service</a>
+              <a href="#" className="text-gray-400 hover:text-white text-sm transition-colors">Cookie Policy</a>
+            </div>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 };
