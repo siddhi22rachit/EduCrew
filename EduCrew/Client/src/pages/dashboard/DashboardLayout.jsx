@@ -1,7 +1,7 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from '../../components/sidebar';
-import MusicPlayer from '../../components/mixplayer';
+
 
 const DashboardLayout = () => {
   return (
@@ -9,7 +9,7 @@ const DashboardLayout = () => {
       <Sidebar />
       <div className="flex-1 flex flex-col">
         <Outlet />
-        <MusicPlayer />
+       
       </div>
     </div>
   );
