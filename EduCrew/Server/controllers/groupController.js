@@ -1,6 +1,5 @@
 import Group from '../models/group.model.js';
 
-// Create Group
 export const createGroup = async (req, res, next) => {
   try {
     const { groupName, members, totalMembers } = req.body;
