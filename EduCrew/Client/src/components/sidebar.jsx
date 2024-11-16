@@ -25,11 +25,10 @@ const Sidebar = () => {
       end: true // Ensures this only matches exactly /dashboard
     },
     { icon: MessageCircle, label: 'Chat', path: '/dashboard/chat' },
-    { icon: FileText, label: 'Notes', path: '/dashboard/notes' },
     { icon: CheckSquare, label: 'Tasks', path: '/dashboard/tasks' },
     { icon: Users, label: 'Groups', path: '/dashboard/group' },
     { icon: Calendar, label: 'Calendar', path: '/dashboard/calendar' },
-    { icon: Video, label: 'Video Calls', path: '/dashboard/calls' },
+    { icon: Video, label: 'Video Calls', path: '/dashboard/video-calls' },
     { icon: BookOpen, label: 'Resources', path: '/dashboard/resources' }
   ];
 
@@ -59,7 +58,7 @@ const Sidebar = () => {
           >
             <Home className="w-5 h-5 text-fuchsia-500" />
             <span className="text-xl font-bold bg-gradient-to-r from-fuchsia-500 to-cyan-400 bg-clip-text text-transparent">
-              StudySync
+             EduCrew
             </span>
           </NavLink>
         </div>

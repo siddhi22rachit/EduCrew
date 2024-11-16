@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Clock,
   LayoutDashboard,
@@ -21,6 +22,7 @@ import {
 import { useSelector } from 'react-redux';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const [shapes, setShapes] = useState([]);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [showProfileMenu, setShowProfileMenu] = useState(false);
@@ -55,30 +57,34 @@ const Dashboard = () => {
     hour12: true
   });
 
-  
+  const handleNavigate = () => {
+    navigate('/dashboard/group-form');
+  };
+
+
 
   return (
     <div className="min-h-screen bg-black text-white flex relative overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
-      {shapes.map((shape) => (
-        <div
-          key={shape.id}
-          className="absolute rounded-full mix-blend-screen filter blur-3xl animate-pulse"
-          style={{
-            background: shape.id % 2 ? 'rgba(236, 72, 153, 0.05)' : 'rgba(34, 211, 238, 0.05)',
-            width: `${shape.width}px`,
-            height: `${shape.height}px`,
-            left: `${shape.left}%`,
-            top: `${shape.top}%`,
-            animationDelay: `${shape.delay}s`,
-            animationDuration: `${shape.duration}s`
-          }}
-        />
-      ))}
-    </div>
+        {shapes.map((shape) => (
+          <div
+            key={shape.id}
+            className="absolute rounded-full mix-blend-screen filter blur-3xl animate-pulse"
+            style={{
+              background: shape.id % 2 ? 'rgba(236, 72, 153, 0.05)' : 'rgba(34, 211, 238, 0.05)',
+              width: `${shape.width}px`,
+              height: `${shape.height}px`,
+              left: `${shape.left}%`,
+              top: `${shape.top}%`,
+              animationDelay: `${shape.delay}s`,
+              animationDuration: `${shape.duration}s`
+            }}
+          />
+        ))}
+      </div>
 
-     
+
 
       {/* Main Content */}
       <div className="flex-1 flex flex-col z-10">
@@ -86,50 +92,46 @@ const Dashboard = () => {
         <header className="h-14 border-b border-gray-800 flex items-center justify-between px-4 bg-gray-900/50 backdrop-blur-xl">
           <h1 className="text-lg font-semibold">Dashboard</h1>
           <div className="flex items-center gap-4">
-            <button className="bg-gradient-to-r from-fuchsia-500/20 to-cyan-400/20 hover:from-fuchsia-500/30 hover:to-cyan-400/30 px-4 py-1.5 rounded-lg transition-all transform hover:scale-105">
-            <a href="/soloStuddy">
-            Start Self Study
-            </a>
-            </button>
+            
             <div className="relative">
-      <button 
-        className="flex items-center gap-2 hover:bg-gray-800/50 p-1 rounded-lg transition-colors"
-        onClick={() => setShowProfileMenu(!showProfileMenu)}
-      >
-        <img 
-          src={currentUser.profilePicture || "/api/placeholder/32/32"} 
-          alt={currentUser.username} 
-          className="w-8 h-8 rounded-full border-2 border-fuchsia-500" 
-        />
-        <span className="text-sm font-medium">
-          {currentUser.username}
-        </span>
-        <ChevronDown className="w-4 h-4 text-gray-400" />
-      </button>
-      
-      {showProfileMenu && (
-        <div className="absolute right-0 mt-2 w-48 bg-gray-900/95 backdrop-blur-xl border border-gray-800 rounded-lg shadow-xl py-1">
-          <a 
-            href="/profile" 
-            className="block px-4 py-2 text-sm text-gray-300 hover:bg-fuchsia-500/10 transition-colors"
-          >
-            Profile
-          </a>
-          <a 
-            href="/settings" 
-            className="block px-4 py-2 text-sm text-gray-300 hover:bg-fuchsia-500/10 transition-colors"
-          >
-            Settings
-          </a>
-          <a 
-            href="/logout" 
-            className="block px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
-          >
-            Logout
-          </a>
-        </div>
-      )}
-    </div>
+              <button
+                className="flex items-center gap-2 hover:bg-gray-800/50 p-1 rounded-lg transition-colors"
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+              >
+                <img
+                  src={currentUser.profilePicture || "/api/placeholder/32/32"}
+                  alt={currentUser.username}
+                  className="w-8 h-8 rounded-full border-2 border-fuchsia-500"
+                />
+                <span className="text-sm font-medium">
+                  {currentUser.username}
+                </span>
+                <ChevronDown className="w-4 h-4 text-gray-400" />
+              </button>
+
+              {showProfileMenu && (
+                <div className="absolute right-0 mt-2 w-48 bg-gray-900/95 backdrop-blur-xl border border-gray-800 rounded-lg shadow-xl py-1">
+                  <a
+                    href="/profile"
+                    className="block px-4 py-2 text-sm text-gray-300 hover:bg-fuchsia-500/10 transition-colors"
+                  >
+                    Profile
+                  </a>
+                  <a
+                    href="/settings"
+                    className="block px-4 py-2 text-sm text-gray-300 hover:bg-fuchsia-500/10 transition-colors"
+                  >
+                    Notifications
+                  </a>
+                  <a
+                    href="/logout"
+                    className="block px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition-colors"
+                  >
+                    Logout
+                  </a>
+                </div>
+              )}
+            </div>
           </div>
         </header>
 
@@ -150,7 +152,7 @@ const Dashboard = () => {
             </div>
 
             {/* Create New Group Button */}
-            <button className="w-full bg-gradient-to-r from-fuchsia-500/10 to-cyan-400/10 hover:from-fuchsia-500/20 hover:to-cyan-400/20 border border-fuchsia-500/30 rounded-xl p-4 mb-6 flex items-center justify-center gap-3 transition-all duration-300 transform hover:scale-[1.01] group">
+            <button onClick={handleNavigate} className="w-full bg-gradient-to-r from-fuchsia-500/10 to-cyan-400/10 hover:from-fuchsia-500/20 hover:to-cyan-400/20 border border-fuchsia-500/30 rounded-xl p-4 mb-6 flex items-center justify-center gap-3 transition-all duration-300 transform hover:scale-[1.01] group">
               <PlusCircle className="w-5 h-5 text-fuchsia-500 group-hover:rotate-90 transition-transform duration-300" />
               <span className="text-base font-medium">Create New Study Group</span>
             </button>
@@ -158,7 +160,7 @@ const Dashboard = () => {
             {/* Study Groups Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {[1, 2, 3].map((group) => (
-                <div 
+                <div
                   key={group}
                   className="group bg-gray-900/30 backdrop-blur-xl p-4 rounded-xl border border-gray-800 hover:border-fuchsia-500 transition-all duration-300 hover:transform hover:scale-[1.02]"
                 >
@@ -181,7 +183,7 @@ const Dashboard = () => {
           </div>
         </main>
 
-       
+
       </div>
     </div>
   );
