@@ -4,7 +4,7 @@ import dotenv from 'dotenv';
 import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
 import groupRoutes from './routes/group.route.js';
-import calendarRoutes from './routes/calendar.route.js';
+import taskRoutes from './routes/task.route.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
@@ -33,7 +33,7 @@ app.use(cookieParser());
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
-app.use('/api/calendar', calendarRoutes);
+app.use('/api/task', taskRoutes);
 
 
 // Serve Frontend (Static Files)
