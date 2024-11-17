@@ -8,11 +8,26 @@ import taskRoutes from './routes/task.route.js';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import path from 'path';
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import Message from './models/message.model.js'; // You'll need to create this
 
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3000;
+
+// Create HTTP server instance
+const server = createServer(app);
+
+// Create Socket.IO instance
+const io = new Server(server, {
+  cors: {
+    origin: 'http://localhost:5173',
+    methods: ['GET', 'POST'],
+    credentials: true
+  }
+});
 
 // MongoDB Connection
 mongoose
@@ -39,6 +54,66 @@ app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/task', taskRoutes);
 
+// Socket.IO connection handling
+io.on('connection', (socket) => {
+  console.log('User connected:', socket.id);
+
+  // Join a study group room
+  socket.on('join_group', (groupId) => {
+    socket.join(groupId);
+    console.log(`User ${socket.id} joined group ${groupId}`);
+  });
+
+  // Leave a study group room
+  socket.on('leave_group', (groupId) => {
+    socket.leave(groupId);
+    console.log(`User ${socket.id} left group ${groupId}`);
+  });
+
+  // Handle incoming messages
+  socket.on('send_message', async (messageData) => {
+    try {
+      // Save message to database
+      const message = new Message({
+        groupId: messageData.groupId,
+        sender: messageData.userId,
+        content: messageData.content,
+        timestamp: new Date()
+      });
+      await message.save();
+
+      // Broadcast message to group members
+      io.to(messageData.groupId).emit('receive_message', {
+        ...messageData,
+        _id: message._id,
+        timestamp: message.timestamp
+      });
+    } catch (error) {
+      console.error('Error saving message:', error);
+      socket.emit('error', { message: 'Failed to send message' });
+    }
+  });
+
+  // Handle typing status
+  socket.on('typing', (data) => {
+    socket.to(data.groupId).emit('user_typing', {
+      userId: data.userId,
+      username: data.username
+    });
+  });
+
+  // Handle stop typing
+  socket.on('stop_typing', (data) => {
+    socket.to(data.groupId).emit('user_stop_typing', {
+      userId: data.userId
+    });
+  });
+
+  // Handle disconnection
+  socket.on('disconnect', () => {
+    console.log('User disconnected:', socket.id);
+  });
+});
 
 // Serve Frontend (Static Files)
 const __dirname = path.resolve();
@@ -58,8 +133,9 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start Server
-app.listen(PORT, () => {
+// Start Server (using 'server' instead of 'app')
+server.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
+
 
