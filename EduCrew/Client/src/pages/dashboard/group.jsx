@@ -27,7 +27,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-const GroupView = () => {
+const   GroupView = () => {
   const [showChat, setShowChat] = useState(false);
   const [showMembers, setShowMembers] = useState(false);
   const [message, setMessage] = useState("");
