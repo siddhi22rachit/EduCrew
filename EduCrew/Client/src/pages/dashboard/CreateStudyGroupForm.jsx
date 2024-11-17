@@ -2,7 +2,11 @@
 
 import React, { useState } from 'react'
 import { Plus, Minus } from 'lucide-react'
-
+import axios from 'axios'
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from 'react-toastify'
+import { useNavigate } from 'react-router-dom';
+import { baseUrl } from '../../config/config';
 
 export default function CreateStudyGroupForm() {
   const [groupName, setGroupName] = useState('')
@@ -11,6 +15,7 @@ export default function CreateStudyGroupForm() {
     { name: '', email: '' },
     { name: '', email: '' },
   ])
+  const navigate = useNavigate();
 
   const handleMemberChange = (index, field, value) => {
     const newMembers = [...members]
@@ -30,15 +35,55 @@ export default function CreateStudyGroupForm() {
     }
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Handle form submission here
-    console.log({ groupName, members })
+    try {
+      const response = await axios.post(`${baseUrl}/groups`, {
+        groupName,
+        members,
+        totalMembers: memberCount,
+      })
+      
+      if (response.status === 201) {
+        toast.success('Group created successfully!', {
+          position: "top-right",
+          autoClose: 3000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        })
+        setTimeout(() => {
+          navigate('/dashboard/tasks')
+        }, 3000)
+      }
+    } catch (error) {
+      toast.error('Failed to create group. Please try again.', {
+        position: "top-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      })
+      console.error('Error creating group:', error)
+    }
   }
 
   return (
     <div className="flex h-screen bg-gray-900">
-     
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
       <div className="flex-1 overflow-hidden">
         <div className="h-full overflow-y-auto bg-black bg-opacity-70 flex items-center justify-center">
           <div className="bg-gray-900 bg-opacity-90 rounded-xl p-6 w-full max-w-4xl m-4">
