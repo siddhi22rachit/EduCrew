@@ -1,14 +1,21 @@
 import mongoose from 'mongoose';
 
-const groupSchema = new mongoose.Schema({
-  groupName: { type: String, required: true },
-  members: [
-    {
-      name: { type: String, required: true },
-      email: { type: String, required: true },
-    },
-  ],
-  totalMembers: { type: Number, required: true },
+const GroupSchema = new mongoose.Schema({
+  groupName: { 
+    type: String, 
+    required: true 
+  },
+  members: [{ 
+    type: String 
+  }],
+  totalMembers: { 
+    type: Number, 
+    default: 1 
+  },
+  tasks: [{ 
+    type: mongoose.Schema.Types.ObjectId, 
+    ref: 'Task' 
+  }]
 });
 
-export default mongoose.model('Group', groupSchema);
+export const Group = mongoose.model('Group', GroupSchema);

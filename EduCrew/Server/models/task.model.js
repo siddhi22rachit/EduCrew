@@ -1,14 +1,13 @@
+// models/task.model.js
 import mongoose from 'mongoose';
 
-const subtaskSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  completed: { type: Boolean, default: false },
-});
-
 const taskSchema = new mongoose.Schema({
-  title: { type: String, required: true },
-  steps: [subtaskSchema],
-  groupId: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true },
-});
+  taskName: { type: String, required: true },
+  group: { type: mongoose.Schema.Types.ObjectId, ref: 'Group', required: true },
+  subtasks: [{
+    name: { type: String, required: true },
+    completed: { type: Boolean, default: false }
+  }]
+}, { timestamps: true });
 
-export default mongoose.model('Task', taskSchema);
+export const Task = mongoose.model('Task', taskSchema);

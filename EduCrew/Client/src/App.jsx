@@ -38,7 +38,7 @@ export default function App() {
             {/* Dashboard sub-routes */}
             <Route path="group" element={<GroupView />} />
             <Route path="chat" element={<ChatPage/>} />
-            <Route path="tasks" element={<TaskPage/>} />
+            <Route path="tasks/:groupId" element={<TaskPage/>} />
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="video-calls" element={<VideoCallPage/>} />
             <Route path="resources" element={<ResourcesPage />} />

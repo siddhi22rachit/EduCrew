@@ -14,8 +14,11 @@ import Message from './models/message.model.js'; // You'll need to create this
 
 dotenv.config();
 
+import events from 'events';
+events.EventEmitter.defaultMaxListeners = 20; // Adjust the number as needed
+
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 5000;
 
 // Create HTTP server instance
 const server = createServer(app);
@@ -52,7 +55,7 @@ app.use(cookieParser());
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
-app.use('/api/task', taskRoutes);
+app.use('/api/tasks', taskRoutes);
 
 // Socket.IO connection handling
 io.on('connection', (socket) => {
