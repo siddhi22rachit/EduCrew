@@ -1,23 +1,16 @@
 import express from 'express';
-import {
-  addTask,
-  updateTask,
-  deleteTask,
-  getTasks,
+import { 
+  createTask, 
+  getAllTasksForGroup, 
+  updateTask, 
+  deleteTask 
 } from '../controllers/task.controller.js';
 
 const router = express.Router();
 
-// Add a Task
-router.post('/add', addTask);
-
-// Update a Task
-router.put('/update/:taskId', updateTask);
-
-// Delete a Task
-router.delete('/delete/:taskId', deleteTask);
-
-// Get All Tasks for a Group
-router.get('/:groupId', getTasks);
+router.post('/', createTask);
+router.get('/group/:groupId', getAllTasksForGroup);
+router.put('/:taskId', updateTask);
+router.delete('/:taskId/group/:groupId', deleteTask);
 
 export default router;
