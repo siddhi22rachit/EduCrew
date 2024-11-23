@@ -12,9 +12,11 @@ import SignupPage from "./pages/login/SignUp";
 import PrivateRoute from "./components/PrivateRoute";
 import Profile from "./pages/profile/profile";
 import CreateStudyGroupForm from "./pages/dashboard/CreateStudyGroupForm";
-import VideoCallPage from "./pages/dashboard/videoCall";
+
 import TaskPage from "./pages/dashboard/task";
 import ChatPage from "./pages/dashboard/chat";
+import VideoCall from "./pages/dashboard/Video_call/videoCall";
+import RoomPage from "./pages/dashboard/Video_call/Room";
 
 export default function App() {
   return (
@@ -22,6 +24,7 @@ export default function App() {
       <Routes>
         {/* Public route */}
         <Route path="/" element={<LandingPage />} />
+        <Route path="/room/:id" element={<RoomPage/>} />
 
         <Route path="/sign-in" element={<LoginPage />} />
         <Route path="/sign-up" element={<  SignupPage />} />
@@ -40,7 +43,9 @@ export default function App() {
             <Route path="chat" element={<ChatPage/>} />
             <Route path="tasks" element={<TaskPage/>} />
             <Route path="calendar" element={<CalendarPage />} />
-            <Route path="video-calls" element={<VideoCallPage/>} />
+            <Route path="video-calls" element={<VideoCall/>} />
+            
+
             <Route path="resources" element={<ResourcesPage />} />
             <Route path="group-form" element={<CreateStudyGroupForm />} />
           </Route>
