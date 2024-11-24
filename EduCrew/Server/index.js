@@ -18,9 +18,13 @@ import { corsOptions, mongoOptions } from './config/options.js';
 
 dotenv.config();
 
+import events from 'events';
+events.EventEmitter.defaultMaxListeners = 20; // Adjust the number as needed
+
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3000;
+
 
 // Socket.IO initialization
 const io = new Server(server, {
@@ -45,7 +49,7 @@ app.use(cookieParser());
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
-app.use('/api/task', taskRoutes);
+app.use('/api/tasks', taskRoutes);
 
 // Static file serving
 const __filename = fileURLToPath(import.meta.url);

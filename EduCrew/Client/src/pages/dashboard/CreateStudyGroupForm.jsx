@@ -1,162 +1,193 @@
-'use client'
-
-import React, { useState } from 'react'
-import { Plus, Minus } from 'lucide-react'
-import axios from 'axios'
-import 'react-toastify/dist/ReactToastify.css';
-import { ToastContainer, toast } from 'react-toastify'
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { baseUrl } from '../../config/config';
+import axios from 'axios';
+import { toast } from 'react-toastify';
 
-export default function CreateStudyGroupForm() {
-  const [groupName, setGroupName] = useState('')
-  const [memberCount, setMemberCount] = useState(2)
-  const [members, setMembers] = useState([
-    { name: '', email: '' },
-    { name: '', email: '' },
-  ])
+const CreateStudyGroupForm = () => {
+  const [formData, setFormData] = useState({
+    groupName: '',
+    members: [],
+    totalMembers: 1 // Default to 1 (creator)
+  });
   const navigate = useNavigate();
 
-  const handleMemberChange = (index, field, value) => {
-    const newMembers = [...members]
-    newMembers[index][field] = value
-    setMembers(newMembers)
-  }
+  // Handle input changes
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prevState => ({
+      ...prevState,
+      [name]: value
+    }));
+  };
 
-  const handleMemberCountChange = (increment) => {
-    const newCount = memberCount + increment
-    if (newCount >= 2 && newCount <= 10) {
-      setMemberCount(newCount)
-      if (increment > 0) {
-        setMembers([...members, { name: '', email: '' }])
-      } else {
-        setMembers(members.slice(0, -1))
-      }
+  // Handle member addition
+  const handleAddMember = (email) => {
+    if (email && !formData.members.includes(email)) {
+      setFormData(prevState => ({
+        ...prevState,
+        members: [...prevState.members, email],
+        totalMembers: prevState.members.length + 2 // +2 to include creator
+      }));
     }
-  }
+  };
 
+  // Handle member removal
+  const handleRemoveMember = (email) => {
+    setFormData(prevState => ({
+      ...prevState,
+      members: prevState.members.filter(member => member !== email),
+      totalMembers: prevState.members.length
+    }));
+  };
+
+  // Handle form submission
   const handleSubmit = async (e) => {
-    e.preventDefault()
+    e.preventDefault();
+
+    // Validate form data
+    if (!formData.groupName.trim()) {
+      toast.error('Group name is required');
+      return;
+    }
+
     try {
-      const response = await axios.post(`${baseUrl}/groups`, {
-        groupName,
-        members,
-        totalMembers: memberCount,
-      })
+      // Prepare the request payload
+      const payload = {
+        groupName: formData.groupName.trim(),
+        members: formData.members,
+        totalMembers: formData.totalMembers
+      };
+
+      // Send POST request to create group
+      const response = await axios.post('http://localhost:5000/api/groups', payload);
       
       if (response.status === 201) {
-        toast.success('Group created successfully!', {
-          position: "top-right",
-          autoClose: 3000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-        })
-        setTimeout(() => {
-          navigate('/dashboard/tasks')
-        }, 3000)
+        toast.success('Group created successfully!');
+        
+        // Navigate to tasks page for the new group
+        navigate(`/dashboard/tasks/${response.data.group._id}`);
       }
     } catch (error) {
-      toast.error('Failed to create group. Please try again.', {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      })
-      console.error('Error creating group:', error)
+      console.error('Error creating group:', error);
+      
+      // More detailed error handling
+      if (error.response) {
+        // The request was made and the server responded with a status code
+        // that falls out of the range of 2xx
+        toast.error(error.response.data.message || 'Failed to create group');
+        console.error('Server error details:', error.response.data);
+      } else if (error.request) {
+        // The request was made but no response was received
+        toast.error('No response from server. Please check your connection.');
+      } else {
+        // Something happened in setting up the request that triggered an Error
+        toast.error('Error creating group. Please try again.');
+      }
     }
-  }
+  };
 
   return (
-    <div className="flex h-screen bg-gray-900">
-      <ToastContainer
-        position="top-right"
-        autoClose={5000}
-        hideProgressBar={false}
-        newestOnTop={false}
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-        theme="light"
-      />
-      <div className="flex-1 overflow-hidden">
-        <div className="h-full overflow-y-auto bg-black bg-opacity-70 flex items-center justify-center">
-          <div className="bg-gray-900 bg-opacity-90 rounded-xl p-6 w-full max-w-4xl m-4">
-            <h2 className="text-2xl font-bold mb-6 text-center bg-gradient-to-r from-fuchsia-500 to-cyan-400 bg-clip-text text-transparent">
-              Create New Study Group
-            </h2>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <input
-                  type="text"
-                  id="groupName"
-                  value={groupName}
-                  onChange={(e) => setGroupName(e.target.value)}
-                  placeholder="Group Name"
-                  className="w-full bg-gray-800 rounded-lg border border-gray-700 focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent p-2 text-white"
-                  required
-                />
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Number of Members
-                </label>
-                <div className="flex items-center space-x-2">
-                  <button
-                    type="button"
-                    onClick={() => handleMemberCountChange(-1)}
-                    className="bg-gray-800 rounded-full p-1 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
+    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
+      <div className="bg-gray-800 rounded-xl p-8 w-full max-w-md">
+        <h2 className="text-2xl font-bold mb-6 text-white text-center">
+          Create Study Group
+        </h2>
+        
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Group Name Input */}
+          <div>
+            <label 
+              htmlFor="groupName" 
+              className="block text-sm font-medium text-gray-300 mb-2"
+            >
+              Group Name
+            </label>
+            <input
+              type="text"
+              id="groupName"
+              name="groupName"
+              value={formData.groupName}
+              onChange={handleChange}
+              placeholder="Enter group name"
+              className="w-full bg-gray-700 rounded-lg border border-gray-600 focus:ring-2 focus:ring-purple-500 p-2 text-white"
+              required
+            />
+          </div>
+
+          {/* Members Section */}
+          <div>
+            <label className="block text-sm font-medium text-gray-300 mb-2">
+              Add Members
+            </label>
+            <div className="flex">
+              <input
+                type="email"
+                placeholder="Member email"
+                className="flex-grow bg-gray-700 rounded-l-lg border border-gray-600 focus:ring-2 focus:ring-purple-500 p-2 text-white"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    handleAddMember(e.target.value);
+                    e.target.value = '';
+                  }
+                }}
+              />
+              <button
+                type="button"
+                className="bg-purple-500 text-white px-4 rounded-r-lg hover:bg-purple-600"
+                onClick={(e) => {
+                  const emailInput = e.target.previousSibling;
+                  handleAddMember(emailInput.value);
+                  emailInput.value = '';
+                }}
+              >
+                Add
+              </button>
+            </div>
+          </div>
+
+          {/* Added Members List */}
+          {formData.members.length > 0 && (
+            <div className="bg-gray-700 rounded-lg p-3">
+              <h3 className="text-sm font-medium text-gray-300 mb-2">
+                Added Members
+              </h3>
+              <div className="space-y-2">
+                {formData.members.map((email, index) => (
+                  <div 
+                    key={index} 
+                    className="flex justify-between items-center bg-gray-600 rounded p-2"
                   >
-                    <Minus className="w-4 h-4" />
-                  </button>
-                  <span className="text-white">{memberCount}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleMemberCountChange(1)}
-                    className="bg-gray-800 rounded-full p-1 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-                  >
-                    <Plus className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto">
-                {members.map((member, index) => (
-                  <div key={index} className="space-y-2">
-                    <h3 className="text-sm font-medium text-gray-300">Member {index + 1}</h3>
-                    <input
-                      type="text"
-                      placeholder="Name"
-                      value={member.name}
-                      onChange={(e) => handleMemberChange(index, 'name', e.target.value)}
-                      className="w-full bg-gray-800 rounded-lg border border-gray-700 focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent p-2 text-white"
-                      required
-                    />
-                    <input
-                      type="email"
-                      placeholder="Email"
-                      value={member.email}
-                      onChange={(e) => handleMemberChange(index, 'email', e.target.value)}
-                      className="w-full bg-gray-800 rounded-lg border border-gray-700 focus:ring-2 focus:ring-fuchsia-500 focus:border-transparent p-2 text-white"
-                      required
-                    />
+                    <span className="text-white">{email}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveMember(email)}
+                      className="text-red-400 hover:text-red-500"
+                    >
+                      Remove
+                    </button>
                   </div>
                 ))}
               </div>
-              <button
-                type="submit"
-                className="w-full bg-gradient-to-r from-fuchsia-500 to-cyan-400 text-white font-medium py-2 px-4 rounded-lg hover:from-fuchsia-600 hover:to-cyan-500 transition-all duration-300"
-              >
-                Create Group
-              </button>
-            </form>
+            </div>
+          )}
+
+          {/* Total Members Display */}
+          <div className="text-gray-300 text-sm">
+            Total Members: {formData.totalMembers}
           </div>
-        </div>
+
+          {/* Submit Button */}
+          <button
+            type="submit"
+            className="w-full bg-gradient-to-r from-purple-500 to-blue-400 text-white font-medium py-2 px-4 rounded-lg hover:from-purple-600 hover:to-blue-500 transition-all duration-300"
+          >
+            Create Group
+          </button>
+        </form>
       </div>
     </div>
-  )
-}
+  );
+};
+
+export default CreateStudyGroupForm;
