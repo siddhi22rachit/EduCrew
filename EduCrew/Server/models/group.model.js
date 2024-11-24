@@ -11,4 +11,6 @@ const groupSchema = new mongoose.Schema({
   totalMembers: { type: Number, required: true },
 });
 
-export default mongoose.model('Group', groupSchema);
+const Group = mongoose.model('Group', groupSchema);
+
+export default Group;

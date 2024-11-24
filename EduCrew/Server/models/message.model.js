@@ -1,4 +1,3 @@
-// models/message.model.js
 import mongoose from 'mongoose';
 
 const messageSchema = new mongoose.Schema({
@@ -14,20 +13,13 @@ const messageSchema = new mongoose.Schema({
   },
   content: {
     type: String,
-    required: true
+    required: true,
+    trim: true
   },
   timestamp: {
     type: Date,
     default: Date.now
-  },
-  readBy: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }]
+  }
 });
-
-// Add indexes for better query performance
-messageSchema.index({ groupId: 1, timestamp: -1 });
-messageSchema.index({ sender: 1 });
 
 export default mongoose.model('Message', messageSchema);
