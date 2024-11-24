@@ -6,23 +6,21 @@ import mongoose from 'mongoose';
 
 export const createTask = async (req, res) => {
   try {
-    const { groupId, taskName, subtasks } = req.body;
+    const { groupId, taskName, subtasks, deadline } = req.body;
 
-    // Validate inputs
-    if (!groupId || !taskName || !subtasks) {
+    if (!groupId || !taskName || !subtasks || !deadline) {
       return res.status(400).json({ message: 'Missing required fields' });
     }
 
-    // Create new task
     const newTask = new Task({
       taskName,
       group: groupId,
-      subtasks: subtasks.map(st => ({ name: st.name }))
+      subtasks: subtasks.map(st => ({ name: st.name })),
+      deadline
     });
 
     await newTask.save();
 
-    // Update group with new task
     await Group.findByIdAndUpdate(
       groupId,
       { $push: { tasks: newTask._id } },
@@ -34,13 +32,13 @@ export const createTask = async (req, res) => {
       task: newTask
     });
   } catch (error) {
-    console.error('Task creation error:', error);
     res.status(500).json({
       message: 'Error creating task',
       error: error.message
     });
   }
 };
+
 
 export const getAllTasksForGroup = async (req, res) => {
   try {
@@ -67,11 +65,11 @@ export const getAllTasksForGroup = async (req, res) => {
 export const updateTask = async (req, res) => {
   try {
     const { taskId } = req.params;
-    const updates = req.body;
+    const { taskName, subtasks, deadline } = req.body;
 
     const updatedTask = await Task.findByIdAndUpdate(
-      taskId, 
-      updates,
+      taskId,
+      { taskName, subtasks, deadline },
       { new: true }
     );
 
