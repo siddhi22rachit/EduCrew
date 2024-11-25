@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
-import { Group } from '../models/group.model.js';
+import Group from '../models/group.model.js';
+
 import { Task } from '../models/task.model.js';
 
 export const createGroup = async (req, res) => {
