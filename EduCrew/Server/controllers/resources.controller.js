@@ -1,4 +1,4 @@
-import Group from "../models/group.model.js";
+import{ Group }from "../models/group.model.js";
 import Resource from "../models/resources.model.js";
 
 const resourceController = {
