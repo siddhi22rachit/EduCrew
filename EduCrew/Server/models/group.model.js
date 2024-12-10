@@ -19,7 +19,7 @@ const GroupSchema = new mongoose.Schema({
 });
 
 
-const Group = mongoose.model('Group', groupSchema);
+const Group = mongoose.model('Group', GroupSchema);
 
 export default Group;
 

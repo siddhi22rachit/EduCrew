@@ -73,48 +73,46 @@ export default function TaskPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!taskName.trim()) {
       toast.error('Task name is required');
       return;
     }
-
+  
     if (subtasks.some((task) => !task.name.trim())) {
       toast.error('All subtasks must have a name');
       return;
     }
-
+  
     if (!deadline) {
       toast.error('Deadline is required');
       return;
     }
-
+  
     try {
       const taskData = {
         groupId,
         taskName: taskName.trim(),
-        subtasks: subtasks.map((st) => ({ name: st.name.trim() })),
+        subtasks: subtasks.map((st) => ({ 
+          name: st.name.trim(), 
+          completed: false 
+        })),
         deadline,
+        status: 'active' // Add a status field
       };
-
-      let response;
-
-      if (editMode) {
-        response = await axios.put(`${BASE_URL}/tasks/${taskIdToEdit}`, taskData);
-        toast.success('Task updated successfully!');
-      } else {
-        response = await axios.post(`${BASE_URL}/tasks`, taskData);
-        toast.success('Task added successfully!');
-      }
-
-      const updatedTasksResponse = await axios.get(`${BASE_URL}/tasks/group/${groupId}`);
-      setExistingTasks(updatedTasksResponse.data);
-
-      setTaskName('');
-      setSubtasks([{ name: '' }]);
-      setDeadline('');
-      setEditMode(false);
-      setTaskIdToEdit(null);
+  
+      const response = await axios.post(`${BASE_URL}/tasks`, taskData);
+      
+      // Store group and task details in localStorage for navigation
+      localStorage.setItem('currentGroupId', groupId);
+      localStorage.setItem('currentTask', JSON.stringify({
+        taskName: taskData.taskName,
+        subtasks: taskData.subtasks,
+        deadline: taskData.deadline
+      }));
+  
+      toast.success('Task added successfully!');
+      navigate(`/dashboard/group/${groupId}`); // Navigate to GroupView with groupId
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to process task');
     }
