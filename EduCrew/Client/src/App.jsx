@@ -21,7 +21,11 @@ import CalendarPage from "./pages/dashboard/calendar-page";
 
 export default function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter
+    future={{
+      v7_startTransition: true,
+      v7_relativeSplatPath: true
+    }}>
       <Routes>
         {/* Public route */}
         <Route path="/" element={<LandingPage />} />
@@ -40,7 +44,7 @@ export default function App() {
             <Route index element={<Dashboard />} />
 
             {/* Dashboard sub-routes */}
-            <Route path="group" element={<GroupView />} />
+            <Route path="group/:groupId" element={<GroupView />} />
             <Route path="chat" element={<ChatPage/>} />
             <Route path="tasks/:groupId" element={<TaskPage/>} />
            

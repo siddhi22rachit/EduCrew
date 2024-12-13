@@ -74,30 +74,35 @@ export default function TaskPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!taskName.trim()) {
       toast.error('Task name is required');
       return;
     }
-
+  
     if (subtasks.some((task) => !task.name.trim())) {
       toast.error('All subtasks must have a name');
       return;
     }
-
+  
     if (!deadline) {
       toast.error('Deadline is required');
       return;
     }
-
+  
     try {
       const taskData = {
         groupId,
         groupName: groupDetails.groupName,
         taskName: taskName.trim(),
-        subtasks: subtasks.map((st) => ({ name: st.name.trim() })),
+        subtasks: subtasks.map((st) => ({ 
+          name: st.name.trim(), 
+          completed: false 
+        })),
         deadline,
+        status: 'active' // Add a status field
       };
+
 
       let response;
 
@@ -122,6 +127,21 @@ export default function TaskPage() {
 
       // Navigate to the calendar page with the new task ID
       navigate(`/calendar?taskId=${newTaskId}`);
+
+  
+      const response = await axios.post(`${BASE_URL}/tasks`, taskData);
+      
+      // Store group and task details in localStorage for navigation
+      localStorage.setItem('currentGroupId', groupId);
+      localStorage.setItem('currentTask', JSON.stringify({
+        taskName: taskData.taskName,
+        subtasks: taskData.subtasks,
+        deadline: taskData.deadline
+      }));
+  
+      toast.success('Task added successfully!');
+      navigate(`/dashboard/group/${groupId}`); // Navigate to GroupView with groupId
+
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to process task');
     }

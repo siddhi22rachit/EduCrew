@@ -1,22 +1,18 @@
-import React from "react";
-import { useState } from "react";
+import React, { useState, useEffect } from 'react';
 import {
-  Clock,
+  Plus,
+  Check,
+  X,
   MessageCircle,
   FileText,
-  CheckSquare,
-  Users,
-  Plus,
-  Home,
-  Check,
+  Video,
   Send,
-  X,
   ChevronRight,
-  ChevronLeft,
   Edit2,
   Trash2,
-  Video,
-} from "lucide-react";
+  Download
+} from 'lucide-react';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   BarChart,
   Bar,
@@ -25,23 +21,55 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-} from "recharts";
+} from 'recharts';
+import axios from 'axios';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-const   GroupView = () => {
+const BASE_URL = 'http://localhost:5000/api';
+
+const ResourceCard = ({ resource }) => {
+  const getIcon = (type) => {
+    switch (type) {
+      case 'pdf':
+        return <FileText className="w-5 h-5 text-red-400" />;
+      case 'video':
+        return <Video className="w-5 h-5 text-blue-400" />;
+      default:
+        return <FileText className="w-5 h-5 text-gray-400" />;
+    }
+  };
+
+  return (
+    <div className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg hover:bg-gray-700/50 transition-colors">
+      <div className="flex items-center gap-3">
+        {getIcon(resource.type)}
+        <div>
+          <h3 className="text-sm font-medium">{resource.name}</h3>
+          <p className="text-xs text-gray-400">
+            Added by {resource.author} on {new Date(resource.date).toLocaleDateString()}
+          </p>
+        </div>
+      </div>
+      <button className="p-2 hover:bg-gray-700 rounded-lg transition-colors">
+        <Download className="w-4 h-4" />
+      </button>
+    </div>
+  );
+};
+
+const StudyGroupDashboard = () => {
+  const { groupId } = useParams();
+  const navigate = useNavigate();
+
+  const [currentTask, setCurrentTask] = useState(null);
+  const [groupDetails, setGroupDetails] = useState(null);
+  const [members, setMembers] = useState([]);
   const [showChat, setShowChat] = useState(false);
-  const [showMembers, setShowMembers] = useState(false);
   const [message, setMessage] = useState("");
-  const [editingTask, setEditingTask] = useState(false);
-  const [taskTitle, setTaskTitle] = useState("Quantum Mechanics Chapter 5");
-
-  const members = [
-    { name: "John Doe", progress: 85, online: true, tasksCompleted: 12 },
-    { name: "Sarah Smith", progress: 92, online: true, tasksCompleted: 15 },
-    { name: "Mike Johnson", progress: 78, online: false, tasksCompleted: 10 },
-    { name: "Amy Wilson", progress: 65, online: true, tasksCompleted: 8 },
-  ];
-
-  const resources = [
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [resources] = useState([
     {
       type: "pdf",
       name: "Quantum States Guide",
@@ -60,125 +88,140 @@ const   GroupView = () => {
       author: "Mike Johnson",
       date: "2024-03-13",
     },
-  ];
-
-  const [steps, setSteps] = useState([
-    { id: 1, text: "Read pages 120-135", completed: true },
-    { id: 2, text: "Complete practice problems", completed: true },
-    { id: 3, text: "Review key concepts", completed: false },
-    { id: 4, text: "Submit summary notes", completed: false },
   ]);
 
-  const messages = [
-    {
-      author: "John Doe",
-      text: "Has everyone reviewed the wave functions?",
-      time: "10:30 AM",
-    },
-    {
-      author: "Sarah Smith",
-      text: "Yes, I have some questions about the practice problems",
-      time: "10:32 AM",
-    },
-    {
-      author: "Mike Johnson",
-      text: "I can help explain those",
-      time: "10:35 AM",
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        const groupResponse = await axios.get(`${BASE_URL}/groups/${groupId}`);
+        setGroupDetails(groupResponse.data);
 
-  const toggleStep = (id) => {
-    setSteps(
-      steps.map((step) =>
-        step.id === id ? { ...step, completed: !step.completed } : step
-      )
-    );
-  };
+        const storedTask = localStorage.getItem('currentTask');
+        if (storedTask) {
+          const taskData = JSON.parse(storedTask);
+          setCurrentTask({
+            ...taskData,
+            steps: taskData.subtasks.map((subtask, index) => ({
+              id: index + 1,
+              text: subtask.name,
+              completed: subtask.completed || false
+            }))
+          });
+        }
+
+        if (groupResponse.data.members) {
+          const memberData = groupResponse.data.members.map(member => ({
+            name: member.split('@')[0],
+            progress: Math.floor(Math.random() * 100),
+            tasksCompleted: Math.floor(Math.random() * 15),
+            online: Math.random() < 0.5
+          }));
+          setMembers(memberData);
+        }
+      } catch (error) {
+        toast.error('Failed to load group data');
+        console.error('Error fetching data:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (groupId) {
+      fetchData();
+    }
+  }, [groupId]);
 
   const calculateProgress = () => {
-    const completed = steps.filter((step) => step.completed).length;
-    return Math.round((completed / steps.length) * 100);
+    if (!currentTask?.steps?.length) return 0;
+    const completed = currentTask.steps.filter(step => step.completed).length;
+    return Math.round((completed / currentTask.steps.length) * 100);
   };
 
-  const deleteTask = () => {
-    if (confirm("Are you sure you want to delete this task?")) {
-      setSteps([]);
-      setTaskTitle("");
+  const toggleStep = async (stepId) => {
+    if (!currentTask) return;
+
+    try {
+      const updatedSteps = currentTask.steps.map(step =>
+        step.id === stepId ? { ...step, completed: !step.completed } : step
+      );
+
+      setCurrentTask(prev => ({
+        ...prev,
+        steps: updatedSteps
+      }));
+
+      await axios.patch(`${BASE_URL}/tasks/${currentTask._id}/subtask/${stepId}`, {
+        completed: !currentTask.steps.find(s => s.id === stepId).completed
+      });
+
+      const progress = calculateProgress();
+      const updatedMembers = members.map(member =>
+        member.name === 'You' ? { ...member, progress } : member
+      );
+      setMembers(updatedMembers);
+
+      toast.success('Progress updated');
+    } catch (error) {
+      toast.error('Failed to update progress');
     }
   };
-
-  const memberStats = members.map((member) => ({
-    name: member.name.split(" ")[0],
-    completion: member.progress,
-  }));
 
   const handleSendMessage = (e) => {
     e.preventDefault();
     if (message.trim()) {
+      const newMessage = {
+        author: 'You',
+        text: message.trim(),
+        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      };
+      setMessages(prev => [...prev, newMessage]);
       setMessage("");
     }
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-gray-900 text-white flex items-center justify-center">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-fuchsia-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gray-900 text-white flex">
-      {/* Main Content */}
+      <ToastContainer />
       <div className="flex-1 flex flex-col">
-        <header className="h-12 border-b border-gray-800 flex items-center justify-between px-4 bg-gray-900/50 backdrop-blur-xl">
+        <header className="h-16 border-b border-gray-800 flex items-center justify-between px-6 bg-gray-900/50 backdrop-blur-xl">
           <div className="flex items-center gap-3">
-            <div className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-            <h1 className="text-base font-semibold">Physics Study Group 1</h1>
+            <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+            <h1 className="text-lg font-semibold">{groupDetails?.groupName || 'Loading...'}</h1>
           </div>
-          <div className="flex gap-3">
-            <button
-              onClick={() => setShowChat(!showChat)}
-              className="px-3 py-1.5 rounded-lg text-sm bg-gray-800 hover:bg-gray-700 transition-colors flex items-center gap-1.5"
-            >
-              <MessageCircle className="w-3.5 h-3.5" />
-              Chat
-            </button>
-          </div>
+          <button
+            onClick={() => setShowChat(!showChat)}
+            className="px-4 py-2 rounded-lg bg-gray-800 hover:bg-gray-700 transition-colors flex items-center gap-2"
+          >
+            <MessageCircle className="w-4 h-4" />
+            Group Chat
+          </button>
         </header>
 
-        <div className="flex-1 p-4 space-y-4 overflow-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {/* Task Management */}
-            <div className="bg-gray-800 rounded-lg p-4">
-              <div className="flex items-center justify-between mb-3">
-                {editingTask ? (
-                  <input
-                    type="text"
-                    value={taskTitle}
-                    onChange={(e) => setTaskTitle(e.target.value)}
-                    className="bg-gray-700 px-3 py-1.5 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-                    onBlur={() => setEditingTask(false)}
-                    autoFocus
-                  />
-                ) : (
-                  <h2 className="text-base font-medium">{taskTitle}</h2>
-                )}
-                <div className="flex gap-1">
-                  <button
-                    onClick={() => setEditingTask(true)}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-white transition-colors"
-                  >
-                    <Edit2 className="w-3.5 h-3.5" />
-                  </button>
-                  <button
-                    onClick={deleteTask}
-                    className="p-1.5 rounded-lg text-gray-400 hover:text-white transition-colors"
-                  >
-                    <Trash2 className="w-3.5 h-3.5" />
-                  </button>
-                </div>
+        <div className="flex-1 p-6 space-y-6 overflow-auto">
+          {/* Current Task Section */}
+          {currentTask && (
+            <div className="bg-gray-800 rounded-lg p-6">
+              <div className="flex items-center justify-between pb-4">
+                <h2 className="text-lg font-semibold">Current Task</h2>
+                <span className="text-sm text-gray-400">
+                  Due: {new Date(currentTask.deadline).toLocaleDateString()}
+                </span>
               </div>
-              <div className="mb-3">
-                <div className="flex justify-between mb-1.5">
-                  <span className="text-xs text-gray-400">Progress</span>
-                  <span className="text-xs font-medium">
-                    {calculateProgress()}%
-                  </span>
+              <div className="mb-6">
+                <div className="flex justify-between mb-2">
+                  <span className="text-sm text-gray-400">Progress</span>
+                  <span className="text-sm font-medium">{calculateProgress()}%</span>
                 </div>
-                <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden">
+                <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-gradient-to-r from-fuchsia-500 to-cyan-400 transition-all duration-300"
                     style={{ width: `${calculateProgress()}%` }}
@@ -186,206 +229,136 @@ const   GroupView = () => {
                 </div>
               </div>
 
-              <div className="space-y-1.5">
-                {steps.map((step) => (
+              <div className="space-y-2">
+                {currentTask.steps.map((step) => (
                   <div
                     key={step.id}
-                    className="flex items-center gap-2 p-2 rounded-lg hover:bg-gray-700/50 transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-700/50 transition-colors"
                   >
                     <button
                       onClick={() => toggleStep(step.id)}
-                      className={`p-1.5 rounded border transition-colors ${
+                      className={`p-2 rounded-lg transition-colors ${
                         step.completed
                           ? "bg-fuchsia-500 text-white"
                           : "bg-gray-700 hover:bg-gray-600"
                       }`}
                     >
-                      {step.completed && <Check className="w-3 h-3" />}
+                      {step.completed && <Check className="w-4 h-4" />}
                     </button>
                     <span
                       className={`flex-1 text-sm ${
-                        step.completed ? "text-gray-400 line-through" : ""
+                        step.completed ? "line-through text-gray-400" : ""
                       }`}
                     >
                       {step.text}
                     </span>
+                    <button
+                      className="p-2 text-red-400 hover:bg-gray-700 rounded-lg"
+                      onClick={() => toast.error('Remove action coming soon')}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
                   </div>
                 ))}
               </div>
             </div>
+          )}
 
-            {/* Member Progress Graph */}
-            <div className="bg-gray-800 rounded-lg p-4">
-              <h2 className="text-base font-medium mb-3">Member Progress</h2>
-              <div className="h-48">
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart
-                    data={memberStats}
-                    margin={{ top: 0, right: 0, bottom: 0, left: -15 }}
-                  >
-                    <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                    <XAxis dataKey="name" stroke="#9CA3AF" fontSize={12} />
-                    <YAxis stroke="#9CA3AF" fontSize={12} />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "#1F2937",
-                        border: "1px solid #374151",
-                        borderRadius: "0.5rem",
-                        fontSize: "12px",
-                      }}
-                    />
-                    <Bar
-                      dataKey="completion"
-                      fill="url(#colorGradient)"
-                      radius={[4, 4, 0, 0]}
-                    />
-                    <defs>
-                      <linearGradient
-                        id="colorGradient"
-                        x1="0"
-                        y1="0"
-                        x2="1"
-                        y2="0"
-                      >
-                        <stop offset="0%" stopColor="#D946EF" />
-                        <stop offset="100%" stopColor="#22D3EE" />
-                      </linearGradient>
-                    </defs>
-                  </BarChart>
-                </ResponsiveContainer>
-              </div>
-            </div>
+         {/* Member Progress */}
+<div className="bg-gray-800 rounded-lg p-6">
+  <h2 className="text-lg font-semibold">Member Progress</h2>
+  <ResponsiveContainer width="100%" height={250}>
+    <BarChart data={members}>
+      <CartesianGrid strokeDasharray="3 3" />
+      <XAxis dataKey="name" />
+      <YAxis />
+      <Tooltip />
+      <Bar dataKey="progress" fill="#f3b1c8" />
+    </BarChart>
+  </ResponsiveContainer>
+</div>
+
+{/* Members Section */}
+<div className="bg-gray-800 rounded-lg p-6">
+  <h2 className="text-lg font-semibold">Members</h2>
+  <div className="space-y-4 mt-4">
+    {members.map((member, index) => (
+      <div
+        key={index}
+        className="flex items-center justify-between bg-gray-700/50 p-4 rounded-lg hover:bg-gray-600 transition-colors"
+      >
+        <div className="flex items-center gap-4">
+          <div
+            className={`w-3 h-3 rounded-full ${
+              member.online ? "bg-green-500" : "bg-gray-400"
+            }`}
+          />
+          <div>
+            <h3 className="text-sm font-medium">{member.name}</h3>
+            <p className="text-xs text-gray-400">
+              Tasks Completed: {member.tasksCompleted}
+            </p>
           </div>
+        </div>
+        <span
+          className={`text-sm font-medium ${
+            member.progress > 50 ? "text-green-400" : "text-yellow-400"
+          }`}
+        >
+          {member.progress}%
+        </span>
+      </div>
+    ))}
+  </div>
+</div>
 
-          {/* Resources and Members */}
-          <div className="flex gap-4">
-            {/* Resources */}
-            <div className="bg-gray-800 rounded-lg p-4 flex-1">
-              <div className="flex items-center justify-between mb-3">
-                <h2 className="text-base font-medium">Resources</h2>
-                <button
-                  onClick={() => setShowAddResource(true)}
-                  className="px-3 py-1.5 rounded-lg text-sm bg-fuchsia-500 hover:bg-fuchsia-600 text-white flex items-center gap-1.5"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  Add Resource
-                </button>
-              </div>
-              <div className="space-y-1.5">
-                {resources.map((resource) => (
-                  <div
-                    key={resource.name}
-                    className="flex items-center gap-2 p-2 hover:bg-gray-700/50 rounded-lg transition-colors"
-                  >
-                    {resource.type === "pdf" ? (
-                      <FileText className="w-3.5 h-3.5 text-fuchsia-500" />
-                    ) : (
-                      <Video className="w-3.5 h-3.5 text-cyan-400" />
-                    )}
-                    <div className="flex-1">
-                      <div className="text-sm">{resource.name}</div>
-                      <div className="text-xs text-gray-400">
-                        By {resource.author}
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Members */}
-            <div className="w-64 border-l border-gray-800 bg-gray-900/30 backdrop-blur-sm p-3">
-              <div className="flex justify-between items-center mb-3">
-                <h2 className="text-sm font-medium">Members</h2>
-                <button className="px-2 py-1 rounded-lg text-sm bg-fuchsia-500 hover:bg-fuchsia-600 text-white">
-                        Add Friend
-                      </button>
-              </div>
-              <div className="space-y-2">
-                {members.map((member) => (
-                  <div
-                    key={member.name}
-                    className="bg-gray-800/50 rounded-lg p-2"
-                  >
-                    <div className="flex items-center gap-2 mb-1.5">
-                      <div className="relative">
-                        <img
-                          src="/api/placeholder/24/24"
-                          alt={member.name}
-                          className="w-6 h-6 rounded-full"
-                        />
-                        {member.online && (
-                          <div className="absolute bottom-0 right-0 w-1.5 h-1.5 bg-green-500 rounded-full" />
-                        )}
-                      </div>
-                      <div className="flex-1">
-                        <div className="text-sm">{member.name}</div>
-                        <div className="text-xs text-gray-400">
-                          {member.tasksCompleted} tasks completed
-                        </div>
-                      </div>
-                      {/* Add Friend Button */}
-                     
-                    </div>
-                    <div className="h-1 bg-gray-700 rounded-full overflow-hidden">
-                      <div
-                        className="h-full bg-gradient-to-r from-fuchsia-500 to-cyan-400"
-                        style={{ width: `${member.progress}%` }}
-                      />
-                    </div>
-                  </div>
-                ))}
-              </div>
+          {/* Study Resources */}
+          <div className="bg-gray-800 rounded-lg p-6">
+            <h2 className="text-lg font-semibold">Study Resources</h2>
+            <div className="space-y-4">
+              {resources.map((resource, index) => (
+                <ResourceCard key={index} resource={resource} />
+              ))}
             </div>
           </div>
         </div>
       </div>
 
-      {/* Chat Panel */}
+      {/* Group Chat */}
       {showChat && (
-        <div className="w-80 border-l border-gray-800 bg-gray-900/30 backdrop-blur-sm flex flex-col">
-          <div className="flex items-center justify-between p-3 border-b border-gray-800">
-            <h2 className="text-sm font-medium">Group Chat</h2>
-            <button
-              onClick={() => setShowChat(false)}
-              className="p-1.5 rounded-lg text-gray-400 hover:text-white transition-colors"
-            >
-              <ChevronRight className="w-4 h-4" />
+        <div className="w-80 bg-gray-800 p-6 space-y-6">
+          <div className="flex items-center justify-between border-b border-gray-700 pb-4">
+            <h3 className="text-lg font-semibold">Group Chat</h3>
+            <button onClick={() => setShowChat(false)} className="text-gray-400">
+              <X />
             </button>
           </div>
-
-          <div className="flex-1 p-3 space-y-3 overflow-auto">
+          <div className="space-y-4">
             {messages.map((msg, index) => (
-              <div key={index} className="bg-gray-800/50 rounded-lg p-2">
-                <div className="flex items-center justify-between mb-1">
-                  <span className="text-sm font-medium">{msg.author}</span>
-                  <span className="text-xs text-gray-400">{msg.time}</span>
-                </div>
-                <p className="text-sm text-gray-300">{msg.text}</p>
+              <div key={index} className="flex gap-3">
+                <span className="font-semibold">{msg.author}:</span>
+                <p className="text-sm text-gray-400">{msg.text}</p>
+                <span className="text-xs text-gray-500">{msg.time}</span>
               </div>
             ))}
           </div>
-
           <form
             onSubmit={handleSendMessage}
-            className="p-3 border-t border-gray-800"
+            className="flex gap-3 items-center pt-4 border-t border-gray-700"
           >
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder="Type your message..."
-                className="bg-gray-800 px-3 py-1.5 rounded-lg text-sm flex-1 focus:outline-none focus:ring-2 focus:ring-fuchsia-500"
-              />
-              <button
-                type="submit"
-                className="px-3 py-1.5 rounded-lg text-sm bg-fuchsia-500 hover:bg-fuchsia-600 text-white flex items-center gap-1.5"
-              >
-                <Send className="w-3.5 h-3.5" />
-                Send
-              </button>
-            </div>
+            <input
+              type="text"
+              className="flex-1 p-2 bg-gray-700 rounded-lg text-sm text-white"
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder="Type your message"
+            />
+            <button
+              type="submit"
+              className="p-2 bg-fuchsia-500 hover:bg-fuchsia-600 rounded-lg text-white"
+            >
+              <Send className="w-4 h-4" />
+            </button>
           </form>
         </div>
       )}
@@ -393,4 +366,4 @@ const   GroupView = () => {
   );
 };
 
-export default GroupView;
+export default StudyGroupDashboard;
