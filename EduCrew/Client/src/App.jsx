@@ -4,7 +4,7 @@ import LandingPage from "./pages/landingPage/LandingPage";
 import Dashboard from "./pages/dashboard/landingPage";
 import GroupView from "./pages/dashboard/group";
 import DashboardLayout from "./pages/dashboard/DashboardLayout";
-import CalendarPage from "./pages/dashboard/calender";
+
 import ResourcesPage from "./pages/dashboard/resources";
 import LoginPage from "./pages/login/login";
 
@@ -17,6 +17,7 @@ import TaskPage from "./pages/dashboard/task";
 import ChatPage from "./pages/dashboard/chat";
 import VideoCall from "./pages/dashboard/Video_call/videoCall";
 import RoomPage from "./pages/dashboard/Video_call/Room";
+import CalendarPage from "./pages/dashboard/calendar-page";
 
 export default function App() {
   return (
@@ -42,7 +43,8 @@ export default function App() {
             <Route path="group" element={<GroupView />} />
             <Route path="chat" element={<ChatPage/>} />
             <Route path="tasks/:groupId" element={<TaskPage/>} />
-            <Route path="calendar" element={<CalendarPage />} />
+           
+            <Route path="calendar-page" element={<CalendarPage />} />
             <Route path="video-calls" element={<VideoCall/>} />
             
 
