@@ -129,7 +129,7 @@ export default function TaskPage() {
       navigate(`/calendar?taskId=${newTaskId}`);
 
   
-      const response = await axios.post(`${BASE_URL}/tasks`, taskData);
+      const responseA = await axios.post(`${BASE_URL}/tasks`, taskData);
       
       // Store group and task details in localStorage for navigation
       localStorage.setItem('currentGroupId', groupId);
@@ -143,7 +143,7 @@ export default function TaskPage() {
       navigate(`/dashboard/group/${groupId}`); // Navigate to GroupView with groupId
 
     } catch (error) {
-      toast.error(error.response?.data?.message || 'Failed to process task');
+      toast.error(error.responseA?.data?.message || 'Failed to process task');
     }
   };
 
