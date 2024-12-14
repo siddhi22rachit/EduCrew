@@ -211,7 +211,7 @@ const StudyGroupDashboard = () => {
           {currentTask && (
             <div className="bg-gray-800 rounded-lg p-6">
               <div className="flex items-center justify-between pb-4">
-                <h2 className="text-lg font-semibold">Current Task</h2>
+                <h2 className="text-lg font-semibold">{currentTask.taskName}</h2>
                 <span className="text-sm text-gray-400">
                   Due: {new Date(currentTask.deadline).toLocaleDateString()}
                 </span>

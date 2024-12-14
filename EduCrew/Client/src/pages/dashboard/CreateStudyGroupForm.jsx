@@ -59,7 +59,7 @@ const CreateStudyGroupForm = () => {
       };
 
       // Send POST request to create group
-      const response = await axios.post('http://localhost:3000/api/groups', payload);
+      const response = await axios.post('http://localhost:5000/api/groups', payload);
       
       if (response.status === 201) {
         toast.success('Group created successfully!');
