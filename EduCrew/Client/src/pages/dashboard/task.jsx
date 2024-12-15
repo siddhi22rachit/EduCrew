@@ -104,7 +104,7 @@ export default function TaskPage() {
       };
 
 
-      let response;
+   
 
       if (editMode) {
         response = await axios.put(`${BASE_URL}/tasks/${taskIdToEdit}`, taskData);
