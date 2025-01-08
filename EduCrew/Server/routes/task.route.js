@@ -3,14 +3,21 @@ import {
   createTask, 
   getAllTasksForGroup, 
   updateTask, 
-  deleteTask 
+  deleteTask ,
+  getTasks
 } from '../controllers/task.controller.js';
+import { verifyToken } from '../middleware/authMiddleware.js';
+
 
 const router = express.Router();
+router.use(verifyToken);
 
-router.post('/', createTask);
+
+router.post('/tasks',verifyToken, createTask);
 router.get('/group/:groupId', getAllTasksForGroup);
-router.put('/:taskId', updateTask);
-router.delete('/:taskId/group/:groupId', deleteTask);
+router.get('/tasks/:groupId', verifyToken, getTasks);
+
+router.put('/tasks/:taskId', updateTask);
+router.delete('/tasks/:taskId/group/:groupId', deleteTask);
 
 export default router;
