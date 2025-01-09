@@ -9,12 +9,10 @@ const CreateGroup = () => {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Validate email format
   const isValidEmail = (email) => {
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   };
 
-  // Handle adding a new member
   const handleAddMember = (e) => {
     e.preventDefault();
     
@@ -38,12 +36,10 @@ const CreateGroup = () => {
     setError('');
   };
 
-  // Handle removing a member
   const handleRemoveMember = (emailToRemove) => {
     setMembers(members.filter(email => email !== emailToRemove));
   };
 
-  // Handle form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -69,9 +65,9 @@ const CreateGroup = () => {
         body: JSON.stringify({
           groupName: groupName.trim(),
           members,
-          totalMembers: members.length + 1 // +1 for the creator
+          totalMembers: members.length + 1
         }),
-        credentials: 'include' // Important for sending cookies
+        credentials: 'include'
       });
 
       const data = await response.json();
@@ -80,7 +76,6 @@ const CreateGroup = () => {
         throw new Error(data.message || 'Failed to create group');
       }
 
-      // Navigate to the group page with the new group ID
       navigate(`/dashboard/task/${data.group._id}`);
       
     } catch (err) {
@@ -91,22 +86,21 @@ const CreateGroup = () => {
   };
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-6 bg-white rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Create New Group</h2>
+    <div className="max-w-md mx-auto mt-8 p-8 bg-gray-900 rounded-xl shadow-2xl border border-gray-800 text-gray-100">
+      <div className="relative">
+        <div className="absolute inset-0 bg-purple-500 opacity-10 blur-xl rounded-xl"></div>
+        <h2 className="relative text-3xl font-bold mb-8 text-purple-400">Create New Group</h2>
+      </div>
       
       {error && (
-        <div className="mb-4 p-3 bg-red-100 text-red-700 rounded">
+        <div className="mb-6 p-4 bg-red-900/50 text-red-300 rounded-lg border border-red-700">
           {error}
         </div>
       )}
 
-      <form onSubmit={handleSubmit}>
-        {/* Group Name Input */}
-        <div className="mb-4">
-          <label 
-            htmlFor="groupName" 
-            className="block text-gray-700 font-medium mb-2"
-          >
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div>
+          <label htmlFor="groupName" className="block text-purple-300 font-medium mb-2">
             Group Name
           </label>
           <input
@@ -114,54 +108,49 @@ const CreateGroup = () => {
             id="groupName"
             value={groupName}
             onChange={(e) => setGroupName(e.target.value)}
-            className="w-full px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 text-gray-100 placeholder-gray-500 transition duration-200"
             placeholder="Enter group name"
             required
           />
         </div>
 
-        {/* Member Email Input */}
-        <div className="mb-4">
-          <label 
-            htmlFor="email" 
-            className="block text-gray-700 font-medium mb-2"
-          >
+        <div>
+          <label htmlFor="email" className="block text-purple-300 font-medium mb-2">
             Add Member
           </label>
-          <div className="flex gap-2">
+          <div className="flex gap-3">
             <input
               type="email"
               id="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:border-blue-500"
+              className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 text-gray-100 placeholder-gray-500 transition duration-200"
               placeholder="Enter member's email"
             />
             <button
               type="button"
               onClick={handleAddMember}
-              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
+              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition duration-200 shadow-lg shadow-purple-500/30"
             >
               Add
             </button>
           </div>
         </div>
 
-        {/* Members List */}
         {members.length > 0 && (
-          <div className="mb-6">
-            <h3 className="text-gray-700 font-medium mb-2">Members:</h3>
-            <div className="space-y-2">
+          <div>
+            <h3 className="text-purple-300 font-medium mb-3">Members:</h3>
+            <div className="space-y-3">
               {members.map((memberEmail) => (
                 <div 
                   key={memberEmail}
-                  className="flex items-center justify-between p-2 bg-gray-50 rounded"
+                  className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700 backdrop-blur-sm"
                 >
-                  <span>{memberEmail}</span>
+                  <span className="text-gray-200">{memberEmail}</span>
                   <button
                     type="button"
                     onClick={() => handleRemoveMember(memberEmail)}
-                    className="text-red-500 hover:text-red-700"
+                    className="text-red-400 hover:text-red-300 transition duration-200"
                   >
                     Remove
                   </button>
@@ -171,14 +160,13 @@ const CreateGroup = () => {
           </div>
         )}
 
-        {/* Submit Button */}
         <button
           type="submit"
           disabled={loading}
-          className={`w-full py-2 px-4 rounded-lg text-white font-medium 
+          className={`w-full py-3 px-6 rounded-lg text-white font-medium shadow-lg transition duration-200 mt-6
             ${loading 
-              ? 'bg-gray-400 cursor-not-allowed' 
-              : 'bg-blue-500 hover:bg-blue-600'}`}
+              ? 'bg-gray-600 cursor-not-allowed' 
+              : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/30'}`}
         >
           {loading ? 'Creating...' : 'Create Group'}
         </button>
