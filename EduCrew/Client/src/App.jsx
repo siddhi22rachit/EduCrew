@@ -4,15 +4,12 @@ import LandingPage from "./pages/landingPage/LandingPage";
 import Dashboard from "./pages/dashboard/landingPage";
 import GroupView from "./pages/dashboard/group";
 import DashboardLayout from "./pages/dashboard/DashboardLayout";
-
 import ResourcesPage from "./pages/dashboard/resources";
 import LoginPage from "./pages/login/login";
-
 import SignupPage from "./pages/login/SignUp";
 import PrivateRoute from "./components/PrivateRoute";
 import Profile from "./pages/profile/profile";
 import CreateStudyGroupForm from "./pages/dashboard/CreateStudyGroupForm";
-
 import TaskPage from "./pages/dashboard/task";
 import ChatPage from "./pages/dashboard/chat";
 import VideoCall from "./pages/dashboard/Video_call/videoCall";
@@ -27,16 +24,15 @@ export default function App() {
       v7_relativeSplatPath: true
     }}>
       <Routes>
-        {/* Public route */}
+        {/* Public routes */}
         <Route path="/" element={<LandingPage />} />
         <Route path="/room/:id" element={<RoomPage/>} />
-
         <Route path="/sign-in" element={<LoginPage />} />
-        <Route path="/sign-up" element={<  SignupPage />} />
+        <Route path="/sign-up" element={<SignupPage />} />
 
+        {/* Private routes */}
         <Route element={<PrivateRoute />}>
           <Route path='/profile' element={<Profile />} />
-
 
           {/* Dashboard routes nested under layout */}
           <Route path="/dashboard" element={<DashboardLayout />}>
@@ -47,15 +43,11 @@ export default function App() {
             <Route path="group/:groupId" element={<GroupView />} />
             <Route path="chat" element={<ChatPage/>} />
             <Route path="tasks/:groupId" element={<TaskPage/>} />
-           
             <Route path="calendar-page" element={<CalendarPage />} />
             <Route path="video-calls" element={<VideoCall/>} />
-            
-
             <Route path="resources" element={<ResourcesPage />} />
             <Route path="group-form" element={<CreateStudyGroupForm />} />
           </Route>
-
         </Route>
 
         {/* Catch-all route for 404 - place it last */}
@@ -64,3 +56,4 @@ export default function App() {
     </BrowserRouter>
   );
 }
+

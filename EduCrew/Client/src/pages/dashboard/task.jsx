@@ -6,7 +6,6 @@ import axios from 'axios';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { useParams, useNavigate } from 'react-router-dom';
-import CustomCalendar from './calender';
 
 const BASE_URL = 'http://localhost:5000/api';
 
@@ -100,11 +99,10 @@ export default function TaskPage() {
           completed: false 
         })),
         deadline,
-        status: 'active' // Add a status field
+        status: 'active'
       };
 
-
-   
+      let response;
 
       if (editMode) {
         response = await axios.put(`${BASE_URL}/tasks/${taskIdToEdit}`, taskData);
@@ -113,8 +111,6 @@ export default function TaskPage() {
         response = await axios.post(`${BASE_URL}/tasks`, taskData);
         toast.success('Task added successfully!');
       }
-
-      const newTaskId = response.data._id;
 
       const updatedTasksResponse = await axios.get(`${BASE_URL}/tasks/group/${groupId}`);
       setExistingTasks(updatedTasksResponse.data);
@@ -125,25 +121,13 @@ export default function TaskPage() {
       setEditMode(false);
       setTaskIdToEdit(null);
 
-      // Navigate to the calendar page with the new task ID
-      navigate(`/calendar?taskId=${newTaskId}`);
-
-  
-      const responseA = await axios.post(`${BASE_URL}/tasks`, taskData);
-      
-      // Store group and task details in localStorage for navigation
-      localStorage.setItem('currentGroupId', groupId);
-      localStorage.setItem('currentTask', JSON.stringify({
-        taskName: taskData.taskName,
-        subtasks: taskData.subtasks,
-        deadline: taskData.deadline
-      }));
-  
-      toast.success('Task added successfully!');
-      navigate(`/dashboard/group/${groupId}`); // Navigate to GroupView with groupId
+      // Store the new task in localStorage
+      const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      storedTasks.push(response.data);
+      localStorage.setItem('tasks', JSON.stringify(storedTasks));
 
     } catch (error) {
-      toast.error(error.responseA?.data?.message || 'Failed to process task');
+      toast.error(error.response?.data?.message || 'Failed to process task');
     }
   };
 
@@ -160,6 +144,11 @@ export default function TaskPage() {
       await axios.delete(`${BASE_URL}/tasks/${taskId}/group/${groupId}`);
       setExistingTasks((prev) => prev.filter((task) => task._id !== taskId));
       toast.success('Task deleted successfully!');
+
+      // Remove the deleted task from localStorage
+      const storedTasks = JSON.parse(localStorage.getItem('tasks') || '[]');
+      const updatedTasks = storedTasks.filter(task => task._id !== taskId);
+      localStorage.setItem('tasks', JSON.stringify(updatedTasks));
     } catch (error) {
       toast.error('Failed to delete task');
     }
@@ -258,26 +247,36 @@ export default function TaskPage() {
                 {existingTasks.map((task) => (
                   <div
                     key={task._id}
-                    className="bg-gray-700 rounded-lg p-4 flex items-center justify-between space-x-4"
+                    className="bg-gray-700 rounded-lg p-4 flex flex-col space-y-2"
                   >
-                    <div>
+                    <div className="flex items-center justify-between">
                       <h4 className="text-white font-medium">{task.taskName}</h4>
-                      <p className="text-gray-400 text-sm">Deadline: {task.deadline}</p>
+                      <div className="flex items-center space-x-2">
+                        <button
+                          onClick={() => handleEditTask(task)}
+                          className="text-blue-400 hover:text-blue-300"
+                        >
+                          <Edit3 className="w-5 h-5" />
+                        </button>
+                        <button
+                          onClick={() => handleDeleteTask(task._id)}
+                          className="text-red-400 hover:text-red-300"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleEditTask(task)}
-                        className="text-blue-400 hover:text-blue-300"
-                      >
-                        <Edit3 className="w-5 h-5" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteTask(task._id)}
-                        className="text-red-400 hover:text-red-300"
-                      >
-                        <Trash2 className="w-5 h-5" />
-                      </button>
-                    </div>
+                    <p className="text-gray-400 text-sm">Deadline: {task.deadline}</p>
+                    {task.subtasks && task.subtasks.length > 0 && (
+                      <div>
+                        <h5 className="text-sm font-medium text-gray-300">Subtasks:</h5>
+                        <ul className="list-disc list-inside">
+                          {task.subtasks.map((subtask, index) => (
+                            <li key={index} className="text-gray-400 text-sm">{subtask.name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -286,13 +285,7 @@ export default function TaskPage() {
             )}
           </div>
         </div>
-
-        <div className="bg-gray-800 rounded-xl p-6">
-          <h3 className="text-xl font-semibold mb-4 text-white">Calendar View</h3>
-          <CustomCalendar tasks={existingTasks} />
-        </div>
       </div>
     </div>
   );
 }
-
