@@ -54,3 +54,37 @@ export const deleteUser = async (req, res, next) => {
   }
 
 }
+
+export const getUserDetailsById = async (req, res, next) => {
+  const { userId } = req.params;
+
+  try {
+    const user = await User.findById(userId).select('-password'); // Don't include password in the response
+
+    if (!user) {
+      return next(errorHandler(404, 'User not found'));
+    }
+
+    res.status(200).json(user);
+  } catch (error) {
+    next(error);
+  }
+};
+
+export const getCurrentUser = async (req, res, next) => {
+  try {
+    // Access the user ID from the token
+    const userId = req.user.id;
+
+    // Retrieve the user details using the user ID
+    const user = await User.findById(userId).select('-password'); // Don't include password in the response
+
+    if (!user) {
+      return next(errorHandler(404, 'User not found'));
+    }
+
+    res.status(200).json(user); // Send the user details as a response
+  } catch (error) {
+    next(error);
+  }
+};

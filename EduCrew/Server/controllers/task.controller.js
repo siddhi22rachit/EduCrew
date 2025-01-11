@@ -3,27 +3,32 @@ import { Group } from '../models/group.model.js';
 import mongoose from 'mongoose';
 
 
+
 export const createTask = async (req, res) => {
   try {
-    const { groupId, taskName, subtasks, deadline } = req.body;
+    const { taskName, deadline, subtasks, groupId } = req.body;
+    const userId = req.user.id; // From auth middleware
 
-    if (!groupId || !taskName || !subtasks || !deadline) {
-      return res.status(400).json({ message: 'Missing required fields' });
+    // Validate group exists and user has access
+    const group = await Group.findOne({ _id: groupId, userId });
+    if (!group) {
+      return res.status(404).json({ message: 'Group not found or access denied' });
     }
 
     const newTask = new Task({
       taskName,
-      group: groupId,
-      subtasks: subtasks.map(st => ({ name: st.name })),
-      deadline
+      deadline,
+      subtasks,
+      groupId,
+      userId
     });
 
     await newTask.save();
 
+    // Add task to group's tasks array
     await Group.findByIdAndUpdate(
       groupId,
-      { $push: { tasks: newTask._id } },
-      { new: true }
+      { $push: { tasks: newTask._id } }
     );
 
     res.status(201).json({
@@ -38,6 +43,20 @@ export const createTask = async (req, res) => {
   }
 };
 
+export const getTasks = async (req, res) => {
+  try {
+    const { groupId } = req.params;
+    const userId = req.user.id;
+
+    const tasks = await Task.find({ groupId, userId });
+    res.status(200).json(tasks);
+  } catch (error) {
+    res.status(500).json({
+      message: 'Error fetching tasks',
+      error: error.message
+    });
+  }
+};
 
 export const getAllTasksForGroup = async (req, res) => {
   try {
@@ -61,6 +80,7 @@ export const getAllTasksForGroup = async (req, res) => {
   }
 };
 
+// Controller for updating task
 export const updateTask = async (req, res) => {
   try {
     const { taskId } = req.params;
@@ -87,6 +107,7 @@ export const updateTask = async (req, res) => {
     });
   }
 };
+
 
 export const deleteTask = async (req, res) => {
   try {

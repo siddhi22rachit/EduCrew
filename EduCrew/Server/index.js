@@ -41,15 +41,17 @@ mongoose
   .catch((err) => console.error('MongoDB connection error:', err.message));
 
 // Middleware
-app.use(cors(corsOptions));
-app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:5173', // Your Vite frontend URL
+  credentials: true
+}));app.use(express.json());
 app.use(cookieParser());
 
 // Routes
 app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
-app.use('/api/tasks', taskRoutes);
+app.use('/api', taskRoutes);
 
 // Static file serving
 const __filename = fileURLToPath(import.meta.url);
@@ -57,9 +59,7 @@ const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
 // Catch-all route for SPA
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, '../client/dist/index.html'));
-});
+
 
 // Error handling
 app.use(errorHandler);
