@@ -1,6 +1,6 @@
 import express from 'express';
 import resourceController from '../controllers/resources.controller.js';
-import { verifyToken } from '../middleware/authMiddleware.js';
+// import { verifyToken } from '../middleware/authMiddleware.js';
 
 
 
@@ -16,8 +16,8 @@ import {
 const router = express.Router();
 
 
-router.post('/',verifyToken, createGroup);
-router.get('/user-id', verifyToken, getUserId);
+router.post('/', createGroup);
+router.get('/user-id', getUserId);
 
 router.get('/', getAllGroups);
 router.get('/:id', getGroupById);

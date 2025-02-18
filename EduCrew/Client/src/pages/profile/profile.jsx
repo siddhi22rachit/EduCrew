@@ -1,229 +1,106 @@
-import { useSelector } from 'react-redux';
-import { useRef, useState, useEffect } from 'react';
-import {
-  getDownloadURL,
-  getStorage,
-  ref,
-  uploadBytesResumable,
-} from 'firebase/storage';
-import { app } from '../../../firebase';
-import { useDispatch } from 'react-redux';
-import {
-  updateUserStart,
-  updateUserSuccess,
-  updateUserFailure,
-  deleteUserStart,
-  deleteUserSuccess,
-  deleteUserFailure,
-  signOut,
-} from '../../redux/user/userSlice';
+import { useState } from "react";
+import { useAuthStore } from "../../store/useAuthStore";
+import { Camera, Mail, User } from "lucide-react";
 
-export default function Profile() {
-  const dispatch = useDispatch();
-  const fileRef = useRef(null);
-  const [image, setImage] = useState(undefined);
-  const [imagePercent, setImagePercent] = useState(0);
-  const [imageError, setImageError] = useState(false);
-  const [formData, setFormData] = useState({});
-  const [updateSuccess, setUpdateSuccess] = useState(false);
+const ProfilePage = () => {
+  const { authUser, isUpdatingProfile, updateProfile } = useAuthStore();
+  const [selectedImg, setSelectedImg] = useState(null);
 
-  const { currentUser, loading, error } = useSelector((state) => state.user);
-  useEffect(() => {
-    if (image) {
-      handleFileUpload(image);
-    }
-  }, [image]);
-  const handleFileUpload = async (image) => {
-    const storage = getStorage(app);
-    const fileName = new Date().getTime() + image.name;
-    const storageRef = ref(storage, fileName);
-    const uploadTask = uploadBytesResumable(storageRef, image);
-    uploadTask.on(
-      'state_changed',
-      (snapshot) => {
-        const progress =
-          (snapshot.bytesTransferred / snapshot.totalBytes) * 100;
-        setImagePercent(Math.round(progress));
-      },
-      (error) => {
-        setImageError(true);
-      },
-      () => {
-        getDownloadURL(uploadTask.snapshot.ref).then((downloadURL) =>
-          setFormData({ ...formData, profilePicture: downloadURL })
-        );
-      }
-    );
-  };
-  const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value });
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.readAsDataURL(file);
+
+    reader.onload = async () => {
+      const base64Image = reader.result;
+      setSelectedImg(base64Image);
+      await updateProfile({ profilePic: base64Image });
+    };
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      dispatch(updateUserStart());
-      const res = await fetch(`/api/user/update/${currentUser._id}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
-      });
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(updateUserFailure(data));
-        return;
-      }
-      dispatch(updateUserSuccess(data));
-      setUpdateSuccess(true);
-    } catch (error) {
-      dispatch(updateUserFailure(error));
-    }
-  };
-
-  const handleDeleteAccount = async () => {
-    try {
-      dispatch(deleteUserStart());
-      const res = await fetch(`/api/user/delete/${currentUser._id}`, {
-        method: 'DELETE',
-      });
-      const data = await res.json();
-      if (data.success === false) {
-        dispatch(deleteUserFailure(data));
-        return;
-      }
-      dispatch(deleteUserSuccess(data));
-    } catch (error) {
-      dispatch(deleteUserFailure(error));
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      await fetch('/api/auth/signout');
-      dispatch(signOut())
-    } catch (error) {
-      console.log(error);
-    }
-  };
   return (
-    <div className="min-h-screen bg-[#0f1117] text-white flex items-center justify-center p-4">
-      <div className="w-full max-w-md bg-[#1a1d27] rounded-lg p-8 shadow-xl">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-blue-500">StudySync</h1>
-          <h2 className="text-2xl font-semibold mt-4">Update Profile</h2>
-          <p className="text-gray-400 mt-2">Modify your account settings</p>
-        </div>
+    <div className="h-screen pt-20">
+      <div className="max-w-2xl mx-auto p-4 py-8">
+        <div className="bg-base-300 rounded-xl p-6 space-y-8">
+          <div className="text-center">
+            <h1 className="text-2xl font-semibold ">Profile</h1>
+            <p className="mt-2">Your profile information</p>
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="flex justify-center">
+          {/* avatar upload section */}
+
+          <div className="flex flex-col items-center gap-4">
             <div className="relative">
-              <input
-                type="file"
-                ref={fileRef}
-                hidden
-                accept="image/*"
-                onChange={(e) => setImage(e.target.files[0])}
+              <img
+                src={selectedImg || authUser.profilePic || "/avatar.png"}
+                alt="Profile"
+                className="size-32 rounded-full object-cover border-4 "
               />
-              {formData.profilePicture || currentUser.profilePicture ? (
-                <img
-                  src={formData.profilePicture || currentUser.profilePicture}
-                  alt="profile"
-                  className="h-24 w-24 rounded-full object-cover cursor-pointer ring-4 ring-blue-500"
-                  onClick={() => fileRef.current.click()}
+              <label
+                htmlFor="avatar-upload"
+                className={`
+                  absolute bottom-0 right-0 
+                  bg-base-content hover:scale-105
+                  p-2 rounded-full cursor-pointer 
+                  transition-all duration-200
+                  ${isUpdatingProfile ? "animate-pulse pointer-events-none" : ""}
+                `}
+              >
+                <Camera className="w-5 h-5 text-base-200" />
+                <input
+                  type="file"
+                  id="avatar-upload"
+                  className="hidden"
+                  accept="image/*"
+                  onChange={handleImageUpload}
+                  disabled={isUpdatingProfile}
                 />
-              ) : (
-                <div
-                  onClick={() => fileRef.current.click()}
-                  className="h-24 w-24 rounded-full bg-gray-700 flex items-center justify-center cursor-pointer ring-4 ring-blue-500"
-                >
-                  <User size={48} className="text-gray-400" />
-                </div>
-              )}
+              </label>
             </div>
-          </div>
-
-          {(imageError || imagePercent > 0) && (
-            <p className="text-sm text-center">
-              {imageError ? (
-                <span className="text-red-500">
-                  Error uploading image (file size must be less than 2 MB)
-                </span>
-              ) : imagePercent < 100 ? (
-                <span className="text-blue-400">{`Uploading: ${imagePercent}%`}</span>
-              ) : (
-                <span className="text-green-500">Image uploaded successfully</span>
-              )}
+            <p className="text-sm text-zinc-400">
+              {isUpdatingProfile ? "Uploading..." : "Click the camera icon to update your photo"}
             </p>
-          )}
+          </div>
 
-          <div className="space-y-4">
-            <div className="relative">
-              <input
-                defaultValue={currentUser.username}
-                type="text"
-                id="username"
-                placeholder="Username"
-                className="w-full bg-[#2a2e3c] rounded-lg p-4 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                onChange={handleChange}
-              />
+          <div className="space-y-6">
+            <div className="space-y-1.5">
+              <div className="text-sm text-zinc-400 flex items-center gap-2">
+                <User className="w-4 h-4" />
+                Full Name
+              </div>
+              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.fullName}</p>
             </div>
 
-            <div className="relative">
-              <input
-                defaultValue={currentUser.email}
-                type="email"
-                id="email"
-                placeholder="Email address"
-                className="w-full bg-[#2a2e3c] rounded-lg p-4 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                onChange={handleChange}
-              />
-            </div>
-
-            <div className="relative">
-              <input
-                type="password"
-                id="password"
-                placeholder="Password"
-                className="w-full bg-[#2a2e3c] rounded-lg p-4 outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-                onChange={handleChange}
-              />
+            <div className="space-y-1.5">
+              <div className="text-sm text-zinc-400 flex items-center gap-2">
+                <Mail className="w-4 h-4" />
+                Email Address
+              </div>
+              <p className="px-4 py-2.5 bg-base-200 rounded-lg border">{authUser?.email}</p>
             </div>
           </div>
 
-          <button
-            disabled={loading}
-            className="w-full bg-gradient-to-r from-blue-500 to-blue-400 text-white p-4 rounded-lg font-semibold hover:opacity-90 transition-all disabled:opacity-50"
-          >
-            {loading ? 'Loading...' : 'Update Profile'}
-          </button>
-        </form>
-
-        <div className="mt-6 flex justify-between text-sm">
-          <button
-            onClick={handleDeleteAccount}
-            className="text-red-500 hover:text-red-400 transition-all"
-          >
-            Delete Account
-          </button>
-          <button
-            onClick={handleSignOut}
-            className="text-red-500 hover:text-red-400 transition-all"
-          >
-            Sign Out
-          </button>
+          <div className="mt-6 bg-base-300 rounded-xl p-6">
+            <h2 className="text-lg font-medium  mb-4">Account Information</h2>
+            <div className="space-y-3 text-sm">
+              <div className="flex items-center justify-between py-2 border-b border-zinc-700">
+                <span>Member Since</span>
+                <span>{authUser.createdAt?.split("T")[0]}</span>
+              </div>
+              <div className="flex items-center justify-between py-2">
+                <span>Account Status</span>
+                <span className="text-green-500">Active</span>
+              </div>
+            </div>
+          </div>
         </div>
-
-        {error && (
-          <p className="mt-4 text-center text-red-500">Something went wrong!</p>
-        )}
-        {updateSuccess && (
-          <p className="mt-4 text-center text-green-500">
-            Profile updated successfully!
-          </p>
-        )}
       </div>
     </div>
   );
-}
+
+};
+
+export default ProfilePage;

@@ -6,16 +6,16 @@ import {
   deleteTask ,
   getTasks
 } from '../controllers/task.controller.js';
-import { verifyToken } from '../middleware/authMiddleware.js';
+// import { verifyToken } from '../middleware/authMiddleware.js';
 
 
 const router = express.Router();
-router.use(verifyToken);
+// router.use(verifyToken);
 
 
-router.post('/tasks',verifyToken, createTask);
+router.post('/tasks', createTask);
 router.get('/group/:groupId', getAllTasksForGroup);
-router.get('/tasks/:groupId', verifyToken, getTasks);
+router.get('/tasks/:groupId',  getTasks);
 
 router.put('/tasks/:taskId', updateTask);
 router.delete('/tasks/:taskId/group/:groupId', deleteTask);

@@ -8,7 +8,7 @@ import { createServer } from 'http';
 import { Server } from 'socket.io';
 import { fileURLToPath } from 'url';
 
-import userRoutes from './routes/user.route.js';
+// import userRoutes from './routes/user.route.js';
 import authRoutes from './routes/auth.route.js';
 import groupRoutes from './routes/group.route.js';
 import taskRoutes from './routes/task.route.js';
@@ -24,6 +24,9 @@ events.EventEmitter.defaultMaxListeners = 20; // Adjust the number as needed
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 3000;
+
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 
 // Socket.IO initialization
@@ -42,13 +45,13 @@ mongoose
 
 // Middleware
 app.use(cors({
-  origin: 'http://localhost:5173', // Your Vite frontend URL
+  origin: 'http://localhost:5173', 
   credentials: true
 }));app.use(express.json());
 app.use(cookieParser());
 
 // Routes
-app.use('/api/user', userRoutes);
+// app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api', taskRoutes);

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { axiosInstance } from '../../../lib/axios'; // Update this path
 
 const CreateGroup = () => {
   const navigate = useNavigate();
@@ -57,29 +58,16 @@ const CreateGroup = () => {
       setLoading(true);
       setError('');
 
-      const response = await fetch('/api/groups', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          groupName: groupName.trim(),
-          members,
-          totalMembers: members.length + 1
-        }),
-        credentials: 'include'
+      const { data } = await axiosInstance.post('/groups', {
+        groupName: groupName.trim(),
+        members,
+        totalMembers: members.length + 1
       });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.message || 'Failed to create group');
-      }
 
       navigate(`/dashboard/task/${data.group._id}`);
       
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.message || 'Failed to create group');
     } finally {
       setLoading(false);
     }

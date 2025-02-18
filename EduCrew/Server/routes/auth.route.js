@@ -1,11 +1,14 @@
 import express from 'express';
-import { signin, signup, google, signout } from '../controllers/auth.controller.js';
+import { checkAuth, login, logout, signup, updateProfile } from '../controllers/auth.controller.js';
+import { protectRoute } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 
 router.post('/signup', signup);
-router.post('/signin', signin);
-router.post('/google', google);
-router.get('/signout', signout);
+router.post('/login', login);
+router.post('/logout', logout);
 
+router.put('/update-profile',protectRoute, updateProfile);
+
+router.get('/check', protectRoute, checkAuth); 
 export default router;
