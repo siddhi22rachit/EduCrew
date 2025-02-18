@@ -10,13 +10,17 @@ import SignupPage from "./pages/login/SignUp";
 import PrivateRoute from "./components/PrivateRoute";
 import Profile from "./pages/profile/profile";
 
+import CreateStudyGroupForm from "./pages/dashboard/CreateStudyGroupForm";
+import TaskPage from "./pages/dashboard/task";
+
 import CreateStudyGroupForm from "./pages/dashboard/createGroup/CreateStudyGroupForm";
 import TaskPage from "./pages/dashboard/task";
 
 
 import Group from "./pages/dashboard/createGroup/group"
 
-
+import TaskPage from "./pages/dashboard/createGroup/task";
+>>>>>>> a37a932d1c5f5127a512f84c35a78bdb027cefb5
 import ChatPage from "./pages/dashboard/chat";
 import VideoCall from "./pages/dashboard/Video_call/videoCall";
 import RoomPage from "./pages/dashboard/Video_call/Room";

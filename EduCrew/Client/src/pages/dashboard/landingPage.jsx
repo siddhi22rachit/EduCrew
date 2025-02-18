@@ -167,6 +167,7 @@ const Dashboard = () => {
               <span className="text-base font-medium">Create New Study Group</span>
             </button>
 
+
             {/* Study Groups Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {isLoading ? (
@@ -208,6 +209,30 @@ const Dashboard = () => {
                 ))
               )}
             </div>
+
+            {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {[1, 2, 3].map((group) => (
+                <div
+                  key={group}
+                  className="group bg-gray-900/30 backdrop-blur-xl p-4 rounded-xl border border-gray-800 hover:border-fuchsia-500 transition-all duration-300 hover:transform hover:scale-[1.02]"
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
+                    <h3 className="font-medium">Physics Study Group {group}</h3>
+                  </div>
+                  <p className="text-gray-400 text-sm mb-3">Currently discussing: Quantum Mechanics</p>
+                  <div className="flex -space-x-2">
+                    {[...Array(3)].map((_, i) => (
+                      <div key={i} className="w-6 h-6 rounded-full bg-gradient-to-r from-fuchsia-500 to-cyan-400 border-2 border-black" />
+                    ))}
+                    <div className="w-6 h-6 rounded-full bg-gray-800 border-2 border-black flex items-center justify-center text-xs">
+                      +5
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div> */}
+
           </div>
         </main>
       </div>

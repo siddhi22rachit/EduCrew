@@ -79,7 +79,6 @@ export const getAllTasksForGroup = async (req, res) => {
     });
   }
 };
-
 // Controller for updating task
 export const updateTask = async (req, res) => {
   try {
@@ -107,7 +106,6 @@ export const updateTask = async (req, res) => {
     });
   }
 };
-
 
 export const deleteTask = async (req, res) => {
   try {

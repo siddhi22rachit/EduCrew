@@ -24,12 +24,12 @@ const Sidebar = () => {
       path: '/dashboard',
       end: true // Ensures this only matches exactly /dashboard
     },
-    { icon: MessageCircle, label: 'Chat', path: '/dashboard/chat' },
-    { icon: CheckSquare, label: 'Tasks', path: '/dashboard/tasks' },
+    // { icon: MessageCircle, label: 'Chat', path: '/dashboard/chat' },
+    // { icon: CheckSquare, label: 'Tasks', path: '/dashboard/tasks' },
     { icon: Users, label: 'Groups', path: '/dashboard/group' },
     { icon: Calendar, label: 'Calendar', path: '/dashboard/calendar-page' },
     { icon: Video, label: 'Video Calls', path: '/dashboard/video-calls' },
-    { icon: BookOpen, label: 'Resources', path: '/dashboard/resources' }
+    // { icon: BookOpen, label: 'Resources', path: '/dashboard/resources' }
   ];
 
   return (
