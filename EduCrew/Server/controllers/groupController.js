@@ -147,9 +147,6 @@ export const getUserId = async (req, res) => {
   }
 };
 
-
-
-
 export const deleteGroup = async (req, res) => {
   try {
     const { id } = req.params;
