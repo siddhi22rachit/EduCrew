@@ -1,132 +1,166 @@
-import { Task } from '../models/task.model.js';
-import { Group } from '../models/group.model.js';
-import mongoose from 'mongoose';
+import Task from "../models/Task.js";
+import Group from "../models/Group.js";
 
-
-
+/**
+ * Create a new task (Only admin can create)
+ */
 export const createTask = async (req, res) => {
-  try {
-    const { taskName, deadline, subtasks, groupId } = req.body;
-    const userId = req.user.id; // From auth middleware
+    try {
+        const { groupId, title, description, deadline, subtasks } = req.body;
+        const userId = req.user.id;
 
-    // Validate group exists and user has access
-    const group = await Group.findOne({ _id: groupId, userId });
-    if (!group) {
-      return res.status(404).json({ message: 'Group not found or access denied' });
+        const group = await Group.findById(groupId);
+        if (!group) return res.status(404).json({ message: "Group not found" });
+
+        if (group.admin.toString() !== userId) {
+            return res.status(403).json({ message: "Only admin can create tasks" });
+        }
+
+        const task = new Task({
+            group: groupId,
+            title,
+            description,
+            deadline,
+            subtasks: subtasks.map(subtask => ({ name: subtask, completedBy: [] })),
+        });
+
+        await task.save();
+        group.tasks.push(task._id);
+        await group.save();
+
+        res.status(201).json({ message: "Task created successfully", task });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-
-    const newTask = new Task({
-      taskName,
-      deadline,
-      subtasks,
-      groupId,
-      userId
-    });
-
-    await newTask.save();
-
-    // Add task to group's tasks array
-    await Group.findByIdAndUpdate(
-      groupId,
-      { $push: { tasks: newTask._id } }
-    );
-
-    res.status(201).json({
-      message: 'Task created successfully',
-      task: newTask
-    });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error creating task',
-      error: error.message
-    });
-  }
 };
 
-export const getTasks = async (req, res) => {
-  try {
-    const { groupId } = req.params;
-    const userId = req.user.id;
+/**
+ * Get task details
+ */
+export const getTaskDetails = async (req, res) => {
+    try {
+        const { taskId } = req.params;
+        const task = await Task.findById(taskId).populate("group");
 
-    const tasks = await Task.find({ groupId, userId });
-    res.status(200).json(tasks);
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error fetching tasks',
-      error: error.message
-    });
-  }
+        if (!task) return res.status(404).json({ message: "Task not found" });
+
+        res.status(200).json(task);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };
 
-export const getAllTasksForGroup = async (req, res) => {
-  try {
-    // Validate ID format first
-    if (!mongoose.Types.ObjectId.isValid(req.params.groupId)) {
-      return res.status(400).json({ message: 'Invalid Group ID' });
-    }
-
-    const tasks = await Task.find({ group: req.params.groupId });
-    
-    if (!tasks) {
-      return res.status(404).json({ message: 'No tasks found for this group' });
-    }
-
-    res.status(200).json(tasks);
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error fetching tasks',
-      error: error.message
-    });
-  }
-};
-// Controller for updating task
+/**
+ * Update task details (Only admin)
+ */
 export const updateTask = async (req, res) => {
-  try {
-    const { taskId } = req.params;
-    const { taskName, subtasks, deadline } = req.body;
+    try {
+        const { taskId } = req.params;
+        const { title, description, deadline, subtasks } = req.body;
+        const userId = req.user.id;
 
-    const updatedTask = await Task.findByIdAndUpdate(
-      taskId,
-      { taskName, subtasks, deadline },
-      { new: true }
-    );
+        const task = await Task.findById(taskId).populate("group");
+        if (!task) return res.status(404).json({ message: "Task not found" });
 
-    if (!updatedTask) {
-      return res.status(404).json({ message: 'Task not found' });
+        if (task.group.admin.toString() !== userId) {
+            return res.status(403).json({ message: "Only admin can update tasks" });
+        }
+
+        task.title = title || task.title;
+        task.description = description || task.description;
+        task.deadline = deadline || task.deadline;
+        if (subtasks) {
+            task.subtasks = subtasks.map(subtask => ({
+                name: subtask,
+                completedBy: [],
+            }));
+        }
+
+        await task.save();
+        res.status(200).json({ message: "Task updated successfully", task });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
-
-    res.status(200).json({
-      message: 'Task updated successfully',
-      task: updatedTask
-    });
-  } catch (error) {
-    res.status(400).json({
-      message: 'Error updating task',
-      error: error.message
-    });
-  }
 };
 
+/**
+ * Delete task (Only admin)
+ */
 export const deleteTask = async (req, res) => {
-  try {
-    const { taskId, groupId } = req.params;
+    try {
+        const { taskId } = req.params;
+        const userId = req.user.id;
 
-    const task = await Task.findByIdAndDelete(taskId);
+        const task = await Task.findById(taskId).populate("group");
+        if (!task) return res.status(404).json({ message: "Task not found" });
 
-    if (!task) {
-      return res.status(404).json({ message: 'Task not found' });
+        if (task.group.admin.toString() !== userId) {
+            return res.status(403).json({ message: "Only admin can delete tasks" });
+        }
+
+        await Task.findByIdAndDelete(taskId);
+        task.group.tasks = task.group.tasks.filter(id => id.toString() !== taskId);
+        await task.group.save();
+
+        res.status(200).json({ message: "Task deleted successfully" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
     }
+};
 
-    await Group.findByIdAndUpdate(
-      groupId,
-      { $pull: { tasks: taskId } }
-    );
+/**
+ * Mark subtask as completed by user
+ */
+export const completeSubtask = async (req, res) => {
+    try {
+        const { taskId, subtaskIndex } = req.body;
+        const userId = req.user.id;
 
-    res.status(200).json({ message: 'Task deleted successfully' });
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error deleting task',
-      error: error.message
-    });
-  }
+        const task = await Task.findById(taskId);
+        if (!task) return res.status(404).json({ message: "Task not found" });
+
+        if (subtaskIndex < 0 || subtaskIndex >= task.subtasks.length) {
+            return res.status(400).json({ message: "Invalid subtask index" });
+        }
+
+        if (!task.subtasks[subtaskIndex].completedBy.includes(userId)) {
+            task.subtasks[subtaskIndex].completedBy.push(userId);
+            await task.save();
+        }
+
+        res.status(200).json({ message: "Subtask marked as completed" });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
+/**
+ * Fetch user progress in the group
+ */
+export const getUserProgress = async (req, res) => {
+    try {
+        const { groupId } = req.params;
+        const userId = req.user.id;
+
+        const group = await Group.findById(groupId).populate("tasks");
+        if (!group) return res.status(404).json({ message: "Group not found" });
+
+        let totalSubtasks = 0;
+        let completedSubtasks = 0;
+
+        group.tasks.forEach(task => {
+            task.subtasks.forEach(subtask => {
+                totalSubtasks++;
+                if (subtask.completedBy.includes(userId)) {
+                    completedSubtasks++;
+                }
+            });
+        });
+
+        let progressPercentage = totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0;
+
+        res.status(200).json({ progress: progressPercentage });
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
 };

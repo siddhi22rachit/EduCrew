@@ -1,23 +1,21 @@
-import express from 'express';
+import express from "express";
 import { 
-  createTask, 
-  getAllTasksForGroup, 
-  updateTask, 
-  deleteTask ,
-  getTasks
-} from '../controllers/task.controller.js';
-// import { verifyToken } from '../middleware/authMiddleware.js';
-
+    createTask, 
+    getTaskDetails, 
+    updateTask, 
+    deleteTask, 
+    completeSubtask, 
+    getUserProgress 
+} from "../controllers/taskController.js";
+import { protect } from "../middleware/authMiddleware.js"; 
 
 const router = express.Router();
-// router.use(verifyToken);
 
-
-router.post('/tasks', createTask);
-router.get('/group/:groupId', getAllTasksForGroup);
-router.get('/tasks/:groupId',  getTasks);
-
-router.put('/tasks/:taskId', updateTask);
-router.delete('/tasks/:taskId/group/:groupId', deleteTask);
+router.post("/create", protect, createTask);
+router.get("/:taskId", protect, getTaskDetails);
+router.put("/:taskId", protect, updateTask);  // Update task
+router.delete("/:taskId", protect, deleteTask); // Delete task
+router.post("/subtask/complete", protect, completeSubtask);
+router.get("/:groupId/progress", protect, getUserProgress);
 
 export default router;
