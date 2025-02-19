@@ -1,29 +1,28 @@
 import mongoose from "mongoose";
 
-const userSchema = new mongoose.Schema({
-
+const userSchema = new mongoose.Schema(
+  {
     fullName: {
-        type: String,
-        required: true,
+      type: String,
+      required: true,
     },
     email: {
-        type: String,
-        required: true,
-        unique: true,
+      type: String,
+      required: true,
+      unique: true,
     },
     password: {
-        type: String,
-        required: true,
-        minlength: 6,
+      type: String,
+      required: true,
+      minlength: 6,
     },
     profilePic: {
-        type: String,
-        default:
-            "",
+      type: String,
+      default: "",
     },
-    
-},
-{ timestamps: true } 
+    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: "Group" }], // Groups the user is in
+  },
+  { timestamps: true }
 );
 const User = mongoose.model("User", userSchema);
 

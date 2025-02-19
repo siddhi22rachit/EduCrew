@@ -1,40 +1,23 @@
-import mongoose from 'mongoose';
+import mongoose from "mongoose";
 
-const SubtaskSchema = new mongoose.Schema({
-  name: {
-    type: String,
-    required: true
+const TaskSchema = new mongoose.Schema(
+  {
+    group: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Group",
+      required: true,
+    },
+    title: { type: String, required: true },
+    deadline: { type: Date, required: true },
+   
+    subtasks: [
+      {
+        title: { type: String, required: true },
+        completedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+      },
+    ],
   },
-  completed: {
-    type: Boolean,
-    default: false
-  }
-});
+  { timestamps: true }
+);
 
-const TaskSchema = new mongoose.Schema({
-  taskName: {
-    type: String,
-    required: true
-  },
-  deadline: {
-    type: Date,
-    required: true
-  },
-  subtasks: [SubtaskSchema],
-  groupId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Group',
-    required: true
-  },
-  userId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  completed: {
-    type: Boolean,
-    default: false
-  }
-}, { timestamps: true });
-
-export const Task = mongoose.model('Task', TaskSchema);
+export default mongoose.model("Task", TaskSchema);
