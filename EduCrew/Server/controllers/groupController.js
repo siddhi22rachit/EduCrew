@@ -1,168 +1,226 @@
-import mongoose from 'mongoose';
-import { Group } from '../models/group.model.js';
-import { Task } from '../models/task.model.js';
+import Group from '../models/group.model.js';
+import User from '../models/user.model.js';
+import { sendEmail } from '../utils/emailService.js';
+import { createError } from '../utils/error.js';
 
-export const createGroup = async (req, res) => {
+// Create a new group
+export const createGroup = async (req, res, next) => {
   try {
-    const { groupName, members, totalMembers } = req.body;
-    const userId = req.user.id; // Get userId from authenticated user
+    const { name, members } = req.body;
+    const userId = req.user.id;
 
-    if (!groupName) {
-      return res.status(400).json({ message: 'Group name is required' });
+    if (!name) {
+      return next(createError(400, 'Group name is required'));
     }
 
+    // Create new group with current user as admin
     const newGroup = new Group({
-      groupName: groupName.trim(),
-      userId, // Automatically add the authenticated user's ID
-      members: members || [],
-      totalMembers: totalMembers || 1
+      name: name.trim(),
+      admin: userId,
+      members: [{ user: userId, accepted: true }], // Admin is automatically accepted
+      tasks: [],
+      resources: [],
+      progress: [{ user: userId, percentage: 0 }]
     });
+
+    // Add invited members
+    if (members && Array.isArray(members)) {
+      const users = await User.find({ email: { $in: members } });
+      for (const user of users) {
+        if (user._id.toString() !== userId) {
+          newGroup.members.push({ user: user._id, accepted: false });
+          newGroup.progress.push({ user: user._id, percentage: 0 });
+          
+          // Send invitation email
+          await sendEmail({
+            email: user.email,
+            subject: 'Group Invitation',
+            message: `You've been invited to join ${name}. Click here to accept: ${process.env.CLIENT_URL}/groups/${newGroup._id}/join`
+          });
+        }
+      }
+    }
 
     await newGroup.save();
 
     res.status(201).json({
+      success: true,
       message: 'Group created successfully',
-      group: newGroup
+      data: newGroup
     });
   } catch (error) {
-    res.status(500).json({
-      message: 'Error creating group',
-      error: error.message
-    });
+    next(error);
   }
 };
 
-export const getAllGroups = async (req, res) => {
+// Get group details
+export const getGroupDetails = async (req, res, next) => {
   try {
-    const { userId } = req.query; // Add query parameter for userId
+    const { groupId } = req.params;
 
-    let query = {};
-    if (userId) {
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ message: 'Invalid User ID' });
-      }
-      query.userId = userId;
+    const group = await Group.findById(groupId)
+      .populate('admin', 'name email')
+      .populate('members.user', 'name email')
+      .populate('tasks')
+      .populate('resources');
+
+    if (!group) {
+      return next(createError(404, 'Group not found'));
     }
 
-    const groups = await Group.find(query).populate('tasks');
-    res.status(200).json(groups);
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error fetching groups',
-      error: error.message
+    res.status(200).json({
+      success: true,
+      data: group
     });
+  } catch (error) {
+    next(error);
   }
 };
 
-export const getGroupById = async (req, res) => {
+// Send invitation to users
+export const inviteToGroup = async (req, res, next) => {
   try {
-    const { id } = req.params;
-    const { userId } = req.query; // Optional: Add userId check
+    const { groupId } = req.params;
+    const { emails } = req.body;
+    const userId = req.user.id;
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid Group ID' });
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return next(createError(404, 'Group not found'));
     }
 
-    const query = { _id: id };
-    if (userId) {
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ message: 'Invalid User ID' });
-      }
-      query.userId = userId;
+    // Check if user is admin
+    if (group.admin.toString() !== userId) {
+      return next(createError(403, 'Only admin can send invitations'));
     }
 
-    const group = await Group.findOne(query).populate({
-      path: 'tasks',
-      select: 'taskName subtasks'
-    });
+    const users = await User.find({ email: { $in: emails } });
+    const updates = [];
     
-    if (!group) {
-      return res.status(404).json({ message: 'Group not found' });
+    for (const user of users) {
+      if (!group.members.some(m => m.user.toString() === user._id.toString())) {
+        updates.push({
+          members: { user: user._id, accepted: false },
+          progress: { user: user._id, percentage: 0 }
+        });
+
+        // Send invitation email
+        await sendEmail({
+          email: user.email,
+          subject: 'Group Invitation',
+          message: `You've been invited to join ${group.name}. Click here to accept: ${process.env.CLIENT_URL}/groups/${groupId}/join`
+        });
+      }
     }
 
-    res.status(200).json(group);
-  } catch (error) {
-    res.status(500).json({
-      message: 'Error fetching group',
-      error: error.message
-    });
-  }
-};
-
-export const updateGroup = async (req, res) => {
-  try {
-    const { id } = req.params;
-    const { groupName, members, totalMembers } = req.body;
-
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ message: 'Invalid Group ID' });
+    if (updates.length > 0) {
+      await Group.findByIdAndUpdate(groupId, {
+        $push: {
+          members: updates.map(u => u.members),
+          progress: updates.map(u => u.progress)
+        }
+      });
     }
-
-    // Find the group by ID
-    const group = await Group.findById(id);
-    if (!group) {
-      return res.status(404).json({ message: 'Group not found' });
-    }
-
-    // Prepare the update data
-    const updateData = {
-      ...(groupName && { groupName: groupName.trim() }),
-      ...(members && { members }),
-      ...(totalMembers && { totalMembers })
-    };
-
-    // Update the group
-    const updatedGroup = await Group.findByIdAndUpdate(id, updateData, { new: true, runValidators: true });
 
     res.status(200).json({
-      message: 'Group updated successfully',
-      group: updatedGroup
+      success: true,
+      message: 'Invitations sent successfully'
     });
   } catch (error) {
-    console.error('Error updating group:', error);
-    res.status(500).json({ message: 'Error updating group', error: error.message });
+    next(error);
   }
 };
 
-export const getUserId = async (req, res) => {
+// Accept invitation and join group
+export const joinGroup = async (req, res, next) => {
   try {
-    console.log('Request user:', req.user); // Debugging step
-    const userId = req.user?.id; // Get userId from the authenticated user
-    if (!userId) {
-      return res.status(404).json({ message: 'User ID not found' });
-    }
+    const { groupId } = req.params;
+    const userId = req.user.id;
 
-    console.log('User ID:', userId); // Debugging step
-
-    res.status(200).json({
-      message: 'User ID retrieved successfully',
-      userId, // Send the user ID in the response
+    const group = await Group.findOne({
+      _id: groupId,
+      'members.user': userId,
+      'members.accepted': false
     });
-  } catch (error) {
-    console.error('Error retrieving user ID:', error.message); // Debugging step
-    res.status(500).json({
-      message: 'Error retrieving user ID',
-      error: error.message,
-    });
-  }
-};
-
-export const deleteGroup = async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    // Find and delete the group by ID
-    const group = await Group.findByIdAndDelete(id);
 
     if (!group) {
-      return res.status(404).json({ message: 'Group not found' });
+      return next(createError(404, 'Invalid invitation or already accepted'));
     }
 
-    res.status(200).json({ message: 'Group deleted successfully' });
-  } catch (err) {
-    console.error('Error deleting group:', err);
-    res.status(500).json({ message: 'Error deleting group', error: err.message });
+    await Group.findOneAndUpdate(
+      { _id: groupId, 'members.user': userId },
+      { 'members.$.accepted': true }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Successfully joined the group'
+    });
+  } catch (error) {
+    next(error);
   }
 };
 
+// Get all members and their progress
+export const getGroupMembers = async (req, res, next) => {
+  try {
+    const { groupId } = req.params;
 
+    const group = await Group.findById(groupId)
+      .populate('members.user', 'name email')
+      .populate('progress.user', 'name email')
+      .select('members progress');
+
+    if (!group) {
+      return next(createError(404, 'Group not found'));
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        members: group.members,
+        progress: group.progress
+      }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// Update member progress
+export const updateProgress = async (req, res, next) => {
+  try {
+    const { groupId } = req.params;
+    const { userId, percentage } = req.body;
+    const adminId = req.user.id;
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return next(createError(404, 'Group not found'));
+    }
+
+    // Only admin can update progress
+    if (group.admin.toString() !== adminId) {
+      return next(createError(403, 'Only admin can update progress'));
+    }
+
+    const memberExists = group.members.some(
+      m => m.user.toString() === userId && m.accepted
+    );
+    if (!memberExists) {
+      return next(createError(404, 'User is not an accepted member of this group'));
+    }
+
+    await Group.findOneAndUpdate(
+      { _id: groupId, 'progress.user': userId },
+      { 'progress.$.percentage': percentage }
+    );
+
+    res.status(200).json({
+      success: true,
+      message: 'Progress updated successfully'
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -1,28 +1,24 @@
 import express from 'express';
-import resourceController from '../controllers/resources.controller.js';
-// import { verifyToken } from '../middleware/authMiddleware.js';
-
-
-
-import { 
-  createGroup, 
-  getAllGroups, 
-  getGroupById ,
-  deleteGroup,
-  updateGroup,
-  getUserId
+import { verifyToken } from '../middleware/auth.js';
+import {
+  createGroup,
+  getGroupDetails,
+  inviteToGroup,
+  joinGroup,
+  getGroupMembers,
+  updateProgress
 } from '../controllers/groupController.js';
 
 const router = express.Router();
 
+// All routes require authentication
+router.use(verifyToken);
 
-router.post('/', createGroup);
-router.get('/user-id', getUserId);
-
-router.get('/', getAllGroups);
-router.get('/:id', getGroupById);
-router.put('/:id',updateGroup );
-
-router.delete('/:id',deleteGroup);
+router.post('/create', createGroup);
+router.get('/:groupId', getGroupDetails);
+router.post('/:groupId/invite', inviteToGroup);
+router.put('/:groupId/join', joinGroup); // Changed from POST to PUT to match your original code
+router.get('/:groupId/members', getGroupMembers);
+router.put('/:groupId/progress', updateProgress);
 
 export default router;
