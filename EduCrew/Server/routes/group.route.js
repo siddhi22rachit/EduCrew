@@ -21,4 +21,13 @@ router.put('/:groupId/join', joinGroup); // Changed from POST to PUT to match yo
 router.get('/:groupId/members', getGroupMembers);
 router.put('/:groupId/progress', updateProgress);
 
+// Add this route to your group routes
+router.get('/test-auth', verifyToken, (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: 'Authentication successful',
+    user: req.user
+  });
+});
+
 export default router;
