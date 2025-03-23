@@ -1,7 +1,14 @@
-export const errorHandler = (statusCode, message) => {
-    const error = new Error();
-    error.statusCode = statusCode;
-    error.message = message;
-    return error;
-  };
-  
+class CustomError extends Error {
+  constructor(statusCode, message) {
+    super(message);
+    this.statusCode = statusCode;
+    this.status = statusCode >= 400 && statusCode < 500 ? 'fail' : 'error';
+    this.isOperational = true;
+
+    Error.captureStackTrace(this, this.constructor);
+  }
+}
+
+export const createError = (statusCode, message) => {
+  return new CustomError(statusCode, message);
+};

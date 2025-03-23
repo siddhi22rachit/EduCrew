@@ -1,5 +1,5 @@
-import Task from "../models/Task.js";
-import Group from "../models/Group.js";
+import Task from "../models/task.model.js";
+import Group from "../models/group.model.js";
 
 /**
  * Create a new task (Only admin can create)

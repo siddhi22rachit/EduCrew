@@ -15,6 +15,7 @@ import taskRoutes from './routes/task.route.js';
 import { initializeSocket } from './socket/socketHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { corsOptions, mongoOptions } from './config/options.js';
+import  resourceRoutes  from './routes/resource.route.js';
 
 dotenv.config();
 
@@ -55,6 +56,7 @@ app.use(cookieParser());
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api', taskRoutes);
+app.use('/api/resources', resourceRoutes);
 
 // Static file serving
 const __filename = fileURLToPath(import.meta.url);

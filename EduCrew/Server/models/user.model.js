@@ -1,29 +1,28 @@
-import mongoose from "mongoose";
+import mongoose from 'mongoose';
 
-const userSchema = new mongoose.Schema(
-  {
-    fullName: {
-      type: String,
-      required: true,
-    },
-    email: {
-      type: String,
-      required: true,
-      unique: true,
-    },
-    password: {
-      type: String,
-      required: true,
-      minlength: 6,
-    },
-    profilePic: {
-      type: String,
-      default: "",
-    },
-    groups: [{ type: mongoose.Schema.Types.ObjectId, ref: "Group" }], // Groups the user is in
+const userSchema = new mongoose.Schema({
+  fullName: {
+    type: String,
+    required: true
   },
-  { timestamps: true }
-);
-const User = mongoose.model("User", userSchema);
+  username: {
+    type: String,
+    unique: true,
+    sparse: true  // This allows null values to not be considered for uniqueness
+  },
+  email: {
+    type: String,
+    required: true,
+    unique: true
+  },
+  password: {
+    type: String,
+    required: true
+  },
+  profilePic: {
+    type: String,
+    default: ""
+  }
+}, { timestamps: true });
 
-export default User;
+export default mongoose.model('User', userSchema);

@@ -6,16 +6,16 @@ import {
     deleteTask, 
     completeSubtask, 
     getUserProgress 
-} from "../controllers/taskController.js";
-import { protect } from "../middleware/authMiddleware.js"; 
+} from "../controllers/task.controller.js";
+import { protectRoute } from "../middleware/authMiddleware.js"; 
 
 const router = express.Router();
 
-router.post("/create", protect, createTask);
-router.get("/:taskId", protect, getTaskDetails);
-router.put("/:taskId", protect, updateTask);  // Update task
-router.delete("/:taskId", protect, deleteTask); // Delete task
-router.post("/subtask/complete", protect, completeSubtask);
-router.get("/:groupId/progress", protect, getUserProgress);
+router.post("/create", protectRoute, createTask);
+router.get("/:taskId", protectRoute, getTaskDetails);
+router.put("/:taskId", protectRoute, updateTask);  // Update task
+router.delete("/:taskId", protectRoute, deleteTask); // Delete task
+router.post("/subtask/complete", protectRoute, completeSubtask);
+router.get("/:groupId/progress", protectRoute, getUserProgress);
 
 export default router;
