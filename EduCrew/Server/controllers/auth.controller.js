@@ -89,6 +89,7 @@ export const login = async (req, res) => {
     
     // Generate and set token
     const token = generateToken(user._id, res);
+    console.log("Generated token:", token);
     
     // Log the user ID for debugging
     console.log('User logged in with ID:', user._id.toString());

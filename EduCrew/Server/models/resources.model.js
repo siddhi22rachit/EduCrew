@@ -11,9 +11,9 @@ const ResourceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    }, // Only Admin
+    }, 
     title: { type: String, required: true },
-    fileUrl: { type: String, required: true }, // PDF stored as URL
+    fileUrl: { type: String, required: true }, 
   },
   { timestamps: true }
 );
