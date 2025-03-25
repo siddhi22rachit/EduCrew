@@ -1,10 +1,11 @@
 import cloudinary from "../lib/cloudinary.js";
 import { generateToken } from "../lib/utils.js";
-import User from "../models/user.model.js";
+// import User from "../models/user.model.js";
 import bcryptjs from "bcryptjs";
+import User from "../models/user.model.js";
 
 export const signup = async (req, res) => {
-  const { fullName, email, password, username } = req.body
+  const { fullName, email, password} = req.body
   try {
     if (!fullName || !email || !password) {
       return res.status(400).json({
@@ -24,15 +25,6 @@ export const signup = async (req, res) => {
       })
     }
     
-    // Check for existing username if provided
-    if (username) {
-      const existingUsername = await User.findOne({ username })
-      if (existingUsername) {
-        return res.status(400).json({
-          message: "User with this username already exists",
-        })
-      }
-    }
 
     const salt = await bcryptjs.genSalt(10)
     const hashPassword = await bcryptjs.hash(password, salt)
@@ -40,21 +32,26 @@ export const signup = async (req, res) => {
     const newUser = new User({
       fullName,
       email,
-      username, // Include username if provided
       password: hashPassword,
     })
 
-    await newUser.save()
+    if(newUser){
+      generateToken(newUser._id, res);
+      await newUser.save();
 
-    generateToken(newUser._id, res)
-
-    res.status(201).json({
-      _id: newUser._id,
-      fullName: newUser.fullName,
-      email: newUser.email,
-      username: newUser.username,
-      profilePic: newUser.profilePic,
-    })
+      res.status(201).json({
+          _id: newUser._id,
+          fullName: newUser.fullName,
+          email: newUser.email,
+          profilePic: newUser.profilePic,
+      });
+      
+  }
+  else{
+      return res.status(400).json({
+          message: "Invalid user data"
+      });
+  }
   } catch (error) {
     console.error("Error in signup controller:", error)
     if (error.code === 11000) {

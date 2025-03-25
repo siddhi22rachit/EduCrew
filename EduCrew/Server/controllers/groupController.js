@@ -123,7 +123,7 @@ export const inviteToGroup = async (req, res, next) => {
     }
     
     // Get user ID from the request
-    const userId = req.user.id;
+    const userId = req.user.userId || req.user.id;
     
     console.log('Current user ID:', userId);
     
@@ -250,7 +250,8 @@ export const updateProgress = async (req, res, next) => {
   try {
     const { groupId } = req.params;
     const { userId, percentage } = req.body;
-    const adminId = req.user.id;
+    const adminId = req.user.userId;
+    // console.log("Admin ID:", adminId);
 
     const group = await Group.findById(groupId);
     if (!group) {

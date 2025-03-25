@@ -1,7 +1,7 @@
 import jwt from "jsonwebtoken"
 import User from "../models/user.model.js"
 
-console.log("JWT_SECRET:", process.env.JWT_SECRET)
+// console.log("JWT_SECRET:", process.env.JWT_SECRET)
 
 export const protectRoute = async (req, res, next) => {
   try {
@@ -11,7 +11,7 @@ export const protectRoute = async (req, res, next) => {
         message: "Unauthorized- no token provided",
       })
     }
-    console.log("JWT_SECRET:", process.env.JWT_SECRET)
+    // console.log("JWT_SECRET:", process.env.JWT_SECRET)
     console.log("Token:", token)
     const decoded = jwt.verify(token, process.env.JWT_SECRET)
 

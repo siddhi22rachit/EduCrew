@@ -5,11 +5,6 @@ const userSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  username: {
-    type: String,
-    unique: true,
-    sparse: true  // This allows null values to not be considered for uniqueness
-  },
   email: {
     type: String,
     required: true,
@@ -25,4 +20,6 @@ const userSchema = new mongoose.Schema({
   }
 }, { timestamps: true });
 
-export default mongoose.model('User', userSchema);
+const User = mongoose.model('User', userSchema);
+
+export default User;
