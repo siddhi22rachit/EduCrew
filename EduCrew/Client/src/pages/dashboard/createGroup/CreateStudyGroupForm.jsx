@@ -1,164 +1,68 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { axiosInstance } from '../../../lib/axios'; // Update this path
+import { useState } from "react";
+import axios from "axios";
 
 const CreateGroup = () => {
-  const navigate = useNavigate();
-  const [groupName, setGroupName] = useState('');
-  const [email, setEmail] = useState('');
-  const [members, setMembers] = useState([]);
-  const [error, setError] = useState('');
+  const [groupName, setGroupName] = useState("");
+  const [members, setMembers] = useState("");
   const [loading, setLoading] = useState(false);
+  const [message, setMessage] = useState("");
 
-  const isValidEmail = (email) => {
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-  };
 
-  const handleAddMember = (e) => {
-    e.preventDefault();
-    
-    if (!email) {
-      setError('Please enter an email address');
+  const handleCreateGroup = async () => {
+    const token = localStorage.getItem("token"); // Retrieve token
+  
+    if (!token) {
+      console.error("No token found. Please log in again.");
       return;
     }
-
-    if (!isValidEmail(email)) {
-      setError('Please enter a valid email address');
-      return;
-    }
-
-    if (members.includes(email)) {
-      setError('This email is already added');
-      return;
-    }
-
-    setMembers([...members, email]);
-    setEmail('');
-    setError('');
-  };
-
-  const handleRemoveMember = (emailToRemove) => {
-    setMembers(members.filter(email => email !== emailToRemove));
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!groupName.trim()) {
-      setError('Please enter a group name');
-      return;
-    }
-
-    if (members.length === 0) {
-      setError('Please add at least one member');
-      return;
-    }
-
+  
     try {
-      setLoading(true);
-      setError('');
-
-      const { data } = await axiosInstance.post('/groups', {
-        groupName: groupName.trim(),
-        members,
-        totalMembers: members.length + 1
-      });
-
-      navigate(`/dashboard/task/${data.group._id}`);
-      
-    } catch (err) {
-      setError(err.response?.data?.message || 'Failed to create group');
-    } finally {
-      setLoading(false);
+      const response = await axios.post(
+        "http://localhost:5000/api/groups/create",
+        { name: "New Study Group", members: ["user1@example.com"] },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`, // Attach token in headers
+            "Content-Type": "application/json",
+          },
+          withCredentials: true, // Include cookies (if needed)
+        }
+      );
+  
+      console.log("Group created:", response.data);
+    } catch (error) {
+      console.error("Error creating group:", error.response?.data || error.message);
     }
   };
+  
 
   return (
-    <div className="max-w-md mx-auto mt-8 p-8 bg-gray-900 rounded-xl shadow-2xl border border-gray-800 text-gray-100">
-      <div className="relative">
-        <div className="absolute inset-0 bg-purple-500 opacity-10 blur-xl rounded-xl"></div>
-        <h2 className="relative text-3xl font-bold mb-8 text-purple-400">Create New Group</h2>
-      </div>
-      
-      {error && (
-        <div className="mb-6 p-4 bg-red-900/50 text-red-300 rounded-lg border border-red-700">
-          {error}
-        </div>
-      )}
-
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div>
-          <label htmlFor="groupName" className="block text-purple-300 font-medium mb-2">
-            Group Name
-          </label>
-          <input
-            type="text"
-            id="groupName"
-            value={groupName}
-            onChange={(e) => setGroupName(e.target.value)}
-            className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 text-gray-100 placeholder-gray-500 transition duration-200"
-            placeholder="Enter group name"
-            required
-          />
-        </div>
-
-        <div>
-          <label htmlFor="email" className="block text-purple-300 font-medium mb-2">
-            Add Member
-          </label>
-          <div className="flex gap-3">
-            <input
-              type="email"
-              id="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="flex-1 px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg focus:outline-none focus:border-purple-500 focus:ring-2 focus:ring-purple-500/50 text-gray-100 placeholder-gray-500 transition duration-200"
-              placeholder="Enter member's email"
-            />
-            <button
-              type="button"
-              onClick={handleAddMember}
-              className="px-6 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 focus:outline-none focus:ring-2 focus:ring-purple-500/50 transition duration-200 shadow-lg shadow-purple-500/30"
-            >
-              Add
-            </button>
-          </div>
-        </div>
-
-        {members.length > 0 && (
-          <div>
-            <h3 className="text-purple-300 font-medium mb-3">Members:</h3>
-            <div className="space-y-3">
-              {members.map((memberEmail) => (
-                <div 
-                  key={memberEmail}
-                  className="flex items-center justify-between p-3 bg-gray-800/50 rounded-lg border border-gray-700 backdrop-blur-sm"
-                >
-                  <span className="text-gray-200">{memberEmail}</span>
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveMember(memberEmail)}
-                    className="text-red-400 hover:text-red-300 transition duration-200"
-                  >
-                    Remove
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
+    <div className="max-w-md mx-auto mt-10 p-6 bg-gray-800 text-white rounded-lg shadow-lg">
+      <h2 className="text-xl font-bold mb-4">Create Group</h2>
+      <form onSubmit={handleCreateGroup} className="space-y-4">
+        <input
+          type="text"
+          placeholder="Group Name"
+          value={groupName}
+          onChange={(e) => setGroupName(e.target.value)}
+          className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none"
+          required
+        />
+        <textarea
+          placeholder="Enter member emails, separated by commas"
+          value={members}
+          onChange={(e) => setMembers(e.target.value)}
+          className="w-full p-2 rounded bg-gray-700 border border-gray-600 focus:outline-none"
+        />
         <button
           type="submit"
+          className="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
           disabled={loading}
-          className={`w-full py-3 px-6 rounded-lg text-white font-medium shadow-lg transition duration-200 mt-6
-            ${loading 
-              ? 'bg-gray-600 cursor-not-allowed' 
-              : 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/30'}`}
         >
-          {loading ? 'Creating...' : 'Create Group'}
+          {loading ? "Creating..." : "Create Group"}
         </button>
       </form>
+      {message && <p className="mt-4 text-sm text-gray-300">{message}</p>}
     </div>
   );
 };

@@ -7,18 +7,10 @@ import DashboardLayout from "./pages/dashboard/DashboardLayout";
 import ResourcesPage from "./pages/dashboard/resources";
 import LoginPage from "./pages/login/login";
 import SignupPage from "./pages/login/SignUp";
-import PrivateRoute from "./components/PrivateRoute";
 import Profile from "./pages/profile/profile";
-
-
 import CreateStudyGroupForm from "./pages/dashboard/createGroup/CreateStudyGroupForm";
-import TaskPage from "./pages/dashboard/task";
-
-
-import Group from "./pages/dashboard/createGroup/group"
-
+import Group from "./pages/dashboard/createGroup/group";
 import TaskPage from "./pages/dashboard/createGroup/task";
->>>>>>> a37a932d1c5f5127a512f84c35a78bdb027cefb5
 import ChatPage from "./pages/dashboard/chat";
 import VideoCall from "./pages/dashboard/Video_call/videoCall";
 import RoomPage from "./pages/dashboard/Video_call/Room";
@@ -27,55 +19,38 @@ import UpdateGroup from "./pages/dashboard/createGroup/UpdateGroup";
 
 export default function App() {
   return (
-    <BrowserRouter
-    future={{
-      v7_startTransition: true,
-      v7_relativeSplatPath: true
-    }}>
+    <BrowserRouter>
       <Routes>
-        {/* Public routes */}
+        {/* Public Routes */}
         <Route path="/" element={<LandingPage />} />
-        <Route path="/room/:id" element={<RoomPage/>} />
+        <Route path="/room/:id" element={<RoomPage />} />
         <Route path="/sign-in" element={<LoginPage />} />
         <Route path="/sign-up" element={<SignupPage />} />
 
-        {/* Private routes */}
+        {/* Private Routes */}
         {/* <Route element={<PrivateRoute />}> */}
-          <Route path='/profile' element={<Profile />} />
+          <Route path="/profile" element={<Profile />} />
 
-          {/* Dashboard routes nested under layout */}
+          {/* Dashboard Layout with Nested Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
-            {/* Index route for dashboard */}
-            <Route index element={<Dashboard />} />
-
-            {/* Dashboard sub-routes */}
-
+            <Route index element={<Dashboard />} />  {/* Default dashboard page */}
             <Route path="group/:groupId" element={<GroupView />} />
-            <Route path="chat" element={<ChatPage/>} />
-            <Route path="tasks/:groupId" element={<TaskPage/>} />
-            <Route path="calendar-page" element={<CalendarPage />} />
-            <Route path="video-calls" element={<VideoCall/>} />
+            <Route path="chat" element={<ChatPage />} />
+            <Route path="tasks/:groupId" element={<TaskPage />} />
+            <Route path="calendar" element={<CalendarPage />} />
+            <Route path="video-calls" element={<VideoCall />} />
             <Route path="resources" element={<ResourcesPage />} />
 
+            {/* Group-related routes */}
             <Route path="group-form" element={<CreateStudyGroupForm />} />
             <Route path="group/:groupId" element={<Group />} />
-            <Route path="task/:groupId" element={<TaskPage/>} />
-            <Route path="update-group/:groupId" element={<UpdateGroup/>} />
-
-
-            <Route path="group" element={ <GroupView/> } />
-           
-            <Route path="calendar-page" element={<CalendarPage/>} />
-            <Route path="video-calls" element={<VideoCall/>} />
-            <Route path="chat" element={<ChatPage/>} />
-            <Route path="resources" element={<ResourcesPage />} />
+            <Route path="update-group/:groupId" element={<UpdateGroup />} />
           </Route>
         {/* </Route> */}
 
-        {/* Catch-all route for 404 - place it last */}
-        <Route path="*" element={<div>404 - Page Not Found</div>} />
+        {/* Catch-all Route for 404 */}
+        <Route path="*" element={<div className="text-center mt-10 text-red-500 text-xl">404 - Page Not Found</div>} />
       </Routes>
     </BrowserRouter>
   );
 }
-
