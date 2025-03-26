@@ -4,56 +4,33 @@ import User from '../models/user.model.js';
 import { sendEmail } from '../utils/emailService.js';
 import { createError } from '../utils/error.js';
 
-// Create a new group
-export const createGroup = async (req, res, next) => {
+export const createGroup = async (req, res) => {
   try {
-    const { name, members } = req.body;
-    
-    // Get userId from req.user
-    const userId = req.user.id || req.user.userId;
+    console.log("🔹 Incoming request body:", req.body);
+    console.log("🔹 req.user:", req.user);
 
-    if (!userId) {
-      return next(createError(400, 'User ID not found in token. Please re-authenticate.'));
-    }
+    const { name } = req.body;
+    const adminUserId = req.user?.userId; // Ensure correct admin ID extraction
 
     if (!name) {
-      return next(createError(400, 'Group name is required'));
+      return res.status(400).json({ error: "Missing required fields" });
+    }
+    if (!adminUserId) {
+      return res.status(401).json({ error: "Unauthorized: Admin user ID is missing" });
     }
 
     const newGroup = new Group({
-      name: name.trim(),
-      admin: userId,
-      members: [{ user: userId, accepted: true }],
-      progress: [{ user: userId, percentage: 0 }]
+      name,
+      admin: adminUserId, // Admin is the only member initially
+      members: [{ user: adminUserId, accepted: true }], // Admin is automatically added as a member
+      progress: [{ user: adminUserId, percentage: 0 }]
     });
-
-    if (members && Array.isArray(members)) {
-      const users = await User.find({ email: { $in: members } });
-      for (const user of users) {
-        if (user._id.toString() !== userId) {
-          newGroup.members.push({ user: user._id, accepted: false });
-          newGroup.progress.push({ user: user._id, percentage: 0 });
-          
-          // Send invitation email
-          await sendEmail({
-            email: user.email,
-            subject: 'Group Invitation',
-            message: `You've been invited to join ${name}. Click here to accept: ${process.env.CLIENT_URL}/groups/${newGroup._id}/join`
-          });
-        }
-      }
-    }
 
     await newGroup.save();
-
-    res.status(201).json({
-      success: true,
-      message: 'Group created successfully',
-      data: newGroup
-    });
+    res.status(201).json(newGroup);
   } catch (error) {
-    console.error('Error creating group:', error);
-    next(error);
+    console.error("❌ Error in createGroup:", error.message);
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -111,65 +88,74 @@ export const getGroupDetails = async (req, res, next) => {
   }
 };
 
-// Send invitation to users
+// Accept invitation and join group
 export const inviteToGroup = async (req, res, next) => {
   try {
     const { groupId } = req.params;
     const { emails } = req.body;
     
-    // Check if user object exists
     if (!req.user) {
-      return next(createError(401, 'Authentication required'));
+      return next(createError(401, "Authentication required"));
     }
     
-    // Get user ID from the request
     const userId = req.user.userId || req.user.id;
-    
-    console.log('Current user ID:', userId);
+    console.log("Current user ID:", userId);
     
     if (!userId) {
-      return next(createError(401, 'User ID not found in token'));
+      return next(createError(401, "User ID not found in token"));
     }
     
     const group = await Group.findById(groupId);
     if (!group) {
-      return next(createError(404, 'Group not found'));
+      return next(createError(404, "Group not found"));
     }
     
-    console.log('Group admin ID:', group.admin.toString());
-    
-    // Check if user is admin (compare as strings)
+    console.log("Group admin ID:", group.admin.toString());
+
+    // Ensure only the admin can send invitations
     if (group.admin.toString() !== userId.toString()) {
-      return next(createError(403, 'Only admin can send invitations'));
+      return next(createError(403, "Only admin can send invitations"));
     }
-    
-    const users = await User.find({ email: { $in: emails } });
-    console.log(`Found ${users.length} users to invite`);
-    
+
+    const registeredUsers = await User.find({ email: { $in: emails } });
+    console.log(`✅ Found ${registeredUsers.length} registered users`);
+
     const updates = [];
-    
-    for (const user of users) {
-      // Check if user is already a member
-      const isMember = group.members.some(m => m.user.toString() === user._id.toString());
-      
-      if (!isMember) {
+    const unregisteredEmails = [];
+
+    for (const email of emails) {
+      const user = registeredUsers.find((u) => u.email === email);
+
+      if (user) {
+        // Check if user is already a member
+        const isMember = group.members.some(m => m.user.toString() === user._id.toString());
+        
+        if (!isMember) {
+          updates.push({
+            members: { user: user._id, accepted: false },
+            progress: { user: user._id, percentage: 0 }
+          });
+        }
+      } else {
+        // If user is not registered, send an invite and add email to the group
+        unregisteredEmails.push(email);
         updates.push({
-          members: { user: user._id, accepted: false },
-          progress: { user: user._id, percentage: 0 }
+          members: { email, accepted: false }, // Store email directly for unregistered users
+          progress: { email, percentage: 0 }
         });
-        
-        // Send invitation email
-        const inviteUrl = `${process.env.CLIENT_URL}/groups/${groupId}/join`;
-        const emailSent = await sendEmail({
-          email: user.email,
-          subject: 'EduCrew Group Invitation',
-          message: `You've been invited to join the group "${group.name}" on EduCrew. Click here to accept: ${inviteUrl}`
-        });
-        
-        console.log(`Invitation email to ${user.email}: ${emailSent ? 'sent' : 'failed'}`);
       }
+
+      // Send invitation email
+      const inviteUrl = `${process.env.CLIENT_URL}/register?groupId=${groupId}&email=${encodeURIComponent(email)}`;
+      const emailSent = await sendEmail({
+        email,
+        subject: "EduCrew Group Invitation",
+        message: `You've been invited to join the group "${group.name}" on EduCrew. Click here to accept: ${inviteUrl}`
+      });
+
+      console.log(`📩 Invitation email to ${email}: ${emailSent ? "sent" : "failed"}`);
     }
-    
+
     if (updates.length > 0) {
       await Group.findByIdAndUpdate(groupId, {
         $push: {
@@ -178,43 +164,52 @@ export const inviteToGroup = async (req, res, next) => {
         }
       });
     }
-    
+
     res.status(200).json({
       success: true,
-      message: 'Invitations sent successfully'
+      message: "Invitations sent successfully",
+      unregisteredEmails
     });
   } catch (error) {
-    console.error('Error sending invitations:', error);
+    console.error("❌ Error sending invitations:", error);
     next(error);
   }
 };
 
-// Accept invitation and join group
 export const joinGroup = async (req, res, next) => {
   try {
     const { groupId } = req.params;
     const userId = req.user.id;
+    const email = req.user.email; // Get email from registered user
 
+    // Find group and check if user was invited
     const group = await Group.findOne({
       _id: groupId,
-      'members.user': userId,
-      'members.accepted': false
+      $or: [
+        { "members.user": userId, "members.accepted": false }, // Registered users
+        { "members.email": email, "members.accepted": false } // Unregistered users who registered now
+      ]
     });
 
     if (!group) {
-      return next(createError(404, 'Invalid invitation or already accepted'));
+      return next(createError(404, "Invalid invitation or already joined"));
     }
 
+    // Update the group: replace email with user ID
     await Group.findOneAndUpdate(
-      { _id: groupId, 'members.user': userId },
-      { 'members.$.accepted': true }
+      { _id: groupId },
+      {
+        $pull: { members: { email } }, // Remove email-based entry
+        $push: { members: { user: userId, accepted: true } }, // Add user with ID
+      }
     );
 
     res.status(200).json({
       success: true,
-      message: 'Successfully joined the group'
+      message: "Successfully joined the group"
     });
   } catch (error) {
+    console.error("❌ Error joining group:", error);
     next(error);
   }
 };

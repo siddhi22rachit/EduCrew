@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 const CreateGroup = () => {
@@ -6,32 +7,69 @@ const CreateGroup = () => {
   const [members, setMembers] = useState("");
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState("");
+  const navigate = useNavigate();
 
-
-  const handleCreateGroup = async () => {
-    const token = localStorage.getItem("token"); // Retrieve token
+  const handleCreateGroup = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setMessage("");
+  
+    const token = localStorage.getItem("token");
+    console.log("🔹 Token from localStorage:", token);
   
     if (!token) {
-      console.error("No token found. Please log in again.");
+      console.error("❌ No token found in localStorage");
+      setMessage("No token found. Please log in again.");
+      setLoading(false);
       return;
     }
   
     try {
-      const response = await axios.post(
+      // Step 1: Create the group with only the admin
+      const groupResponse = await axios.post(
         "http://localhost:5000/api/groups/create",
-        { name: "New Study Group", members: ["user1@example.com"] },
+        { name: groupName }, // Only send group name
         {
           headers: {
-            Authorization: `Bearer ${token}`, // Attach token in headers
+            Authorization: `Bearer ${token}`,
             "Content-Type": "application/json",
           },
-          withCredentials: true, // Include cookies (if needed)
+          withCredentials: true,
         }
       );
   
-      console.log("Group created:", response.data);
+      console.log("🚀 Group Created:", groupResponse.data);
+      const groupId = groupResponse.data._id; // Extract group ID
+  
+      // Step 2: Invite members if any are provided
+      if (members.trim()) {
+        const emailsArray = members.split(",").map((email) => email.trim());
+  
+        const inviteResponse = await axios.post(
+          `http://localhost:5000/api/groups/${groupId}/invite`,
+          { emails: emailsArray },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              "Content-Type": "application/json",
+            },
+            withCredentials: true,
+          }
+        );
+  
+        console.log("📩 Invitation Response:", inviteResponse.data);
+        setMessage("Group created and invitations sent!");
+      } else {
+        setMessage("Group created successfully!");
+      }
+
+      navigate(`./dashboard/group/${groupId}`);
+
     } catch (error) {
-      console.error("Error creating group:", error.response?.data || error.message);
+      console.error("❌ Error:", error);
+      setMessage(error.response?.data?.message || "Error creating group. Try again!");
+    } finally {
+      setLoading(false);
     }
   };
   

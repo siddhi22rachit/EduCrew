@@ -34,7 +34,7 @@ export default function App() {
           {/* Dashboard Layout with Nested Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
             <Route index element={<Dashboard />} />  {/* Default dashboard page */}
-            <Route path="group/:groupId" element={<GroupView />} />
+            <Route path="group" element={<GroupView />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="tasks/:groupId" element={<TaskPage />} />
             <Route path="calendar" element={<CalendarPage />} />
