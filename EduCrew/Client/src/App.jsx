@@ -9,13 +9,13 @@ import LoginPage from "./pages/login/login";
 import SignupPage from "./pages/login/SignUp";
 import Profile from "./pages/profile/profile";
 import CreateStudyGroupForm from "./pages/dashboard/createGroup/CreateStudyGroupForm";
-import Group from "./pages/dashboard/createGroup/group";
 import TaskPage from "./pages/dashboard/createGroup/task";
 import ChatPage from "./pages/dashboard/chat";
 import VideoCall from "./pages/dashboard/Video_call/videoCall";
 import RoomPage from "./pages/dashboard/Video_call/Room";
 import CalendarPage from "./pages/dashboard/calender";
 import UpdateGroup from "./pages/dashboard/createGroup/UpdateGroup";
+import Layout from "./pages/dashboard/groupDashboard/layout"
 
 export default function App() {
   return (
@@ -43,7 +43,7 @@ export default function App() {
 
             {/* Group-related routes */}
             <Route path="group-form" element={<CreateStudyGroupForm />} />
-            <Route path="group/:groupId" element={<Group />} />
+            <Route path="group/:groupId" element={<Layout />} />
             <Route path="update-group/:groupId" element={<UpdateGroup />} />
           </Route>
         {/* </Route> */}
