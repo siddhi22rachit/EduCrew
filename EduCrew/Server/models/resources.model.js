@@ -11,9 +11,24 @@ const ResourceSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
       required: true,
-    }, 
-    title: { type: String, required: true },
-    fileUrl: { type: String, required: true }, 
+    },
+    title: { 
+      type: String, 
+      required: true 
+    },
+    fileUrl: { 
+      type: String, 
+      required: true 
+    },
+    fileType: {
+      type: String,
+      enum: ['document', 'image', 'video', 'audio', 'other'],
+      required: true
+    },
+    fileSize: {
+      type: Number,
+      required: true
+    }
   },
   { timestamps: true }
 );
