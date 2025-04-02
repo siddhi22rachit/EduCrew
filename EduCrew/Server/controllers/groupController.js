@@ -1,4 +1,3 @@
-
 import Group from '../models/group.model.js';
 import User from '../models/user.model.js';
 import { sendEmail } from '../utils/emailService.js';
@@ -9,8 +8,10 @@ export const createGroup = async (req, res) => {
     console.log("🔹 Incoming request body:", req.body);
     console.log("🔹 req.user:", req.user);
 
-    const { name } = req.body;
-    const adminUserId = req.user?.userId; // Ensure correct admin ID extraction
+    // Extract name and memberEmails from request body
+    const { name, memberEmails = [] } = req.body;
+    const adminUserId = req.user?.userId; 
+    const adminEmail = req.user?.email;
 
     if (!name) {
       return res.status(400).json({ error: "Missing required fields" });
@@ -19,22 +20,87 @@ export const createGroup = async (req, res) => {
       return res.status(401).json({ error: "Unauthorized: Admin user ID is missing" });
     }
 
+    console.log(`📝 Creating group "${name}" with members:`, memberEmails);
+
+    // Add admin email to the list if not already included
+    if (adminEmail && !memberEmails.includes(adminEmail)) {
+      memberEmails.push(adminEmail);
+    }
+
+    // Find registered users from provided emails
+    const registeredUsers = await User.find({ email: { $in: memberEmails } });
+    console.log(`✅ Found ${registeredUsers.length} registered users:`, registeredUsers.map(u => u.email));
+
+    // Initialize members array with admin as accepted
+    const members = [{ user: adminUserId, accepted: true }];
+    const progressArray = [{ user: adminUserId, percentage: 0 }];
+    
+    // Track emails for unregistered users
+    const unregisteredEmails = [];
+
+    // Process each email
+    for (const email of memberEmails) {
+      // Skip admin's email as it's already added
+      if (adminEmail && email === adminEmail) {
+        console.log(`Skipping admin email: ${email}`);
+        continue;
+      }
+      
+      const user = registeredUsers.find(u => u.email === email);
+      
+      if (user) {
+        console.log(`Adding registered user: ${email} with ID: ${user._id}`);
+        // Add registered user
+        members.push({ user: user._id, accepted: false });
+        progressArray.push({ user: user._id, percentage: 0 });
+      } else {
+        console.log(`Adding unregistered user by email: ${email}`);
+        // Add unregistered user by email
+        members.push({ email: email, accepted: false }); // Ensure email property is explicitly named
+        progressArray.push({ email: email, percentage: 0 });
+        unregisteredEmails.push(email);
+      }
+    }
+
+    // Create the group with all members
     const newGroup = new Group({
       name,
-      admin: adminUserId, // Admin is the only member initially
-      members: [{ user: adminUserId, accepted: true }], // Admin is automatically added as a member
-      progress: [{ user: adminUserId, percentage: 0 }]
+      admin: adminUserId,
+      members: members,
+      progress: progressArray
     });
 
+    console.log("Creating group with members:", members);
+    
     await newGroup.save();
-    res.status(201).json(newGroup);
+
+    // Send invitation emails to all members except admin
+    for (const email of memberEmails) {
+      if (adminEmail && email === adminEmail) continue;
+      
+      const inviteUrl = `${process.env.CLIENT_URL}/register?groupId=${newGroup._id}&email=${encodeURIComponent(email)}`;
+      const emailSent = await sendEmail({
+        email,
+        subject: "EduCrew Group Invitation",
+        message: `You've been invited to join the group "${name}" on EduCrew. Click here to accept: ${inviteUrl}`
+      });
+
+      console.log(`📩 Invitation email to ${email}: ${emailSent ? "sent" : "failed"}`);
+    }
+
+    res.status(201).json({
+      success: true,
+      message: "Group created successfully with invitations sent",
+      data: newGroup,
+      unregisteredEmails
+    });
   } catch (error) {
     console.error("❌ Error in createGroup:", error.message);
     res.status(500).json({ error: error.message });
   }
 };
 
-// Get group details
+// Get group details with improved handling of unregistered users
 export const getGroupDetails = async (req, res, next) => {
   try {
     const { groupId } = req.params;
@@ -45,6 +111,10 @@ export const getGroupDetails = async (req, res, next) => {
         path: 'members.user',
         select: 'name email'
       });
+
+    if (!group) {
+      return next(createError(404, 'Group not found'));
+    }
 
     // Conditionally populate tasks if they exist
     if (group.tasks && group.tasks.length > 0) {
@@ -68,22 +138,34 @@ export const getGroupDetails = async (req, res, next) => {
       });
     }
 
-    if (!group) {
-      return next(createError(404, 'Group not found'));
-    }
+    // Process members to ensure emails are properly represented
+    const processedMembers = group.members.map(member => {
+      if (member.user) {
+        return member;
+      } else if (member.email) {
+        // Create a virtual user object for unregistered users
+        return {
+          ...member.toObject(),
+          user: {
+            _id: 'unregistered',
+            name: member.email.split('@')[0], // Use part before @ as name
+            email: member.email
+          }
+        };
+      }
+      return member;
+    });
+
+    // Replace group members with processed ones
+    const result = group.toObject();
+    result.members = processedMembers;
 
     res.status(200).json({
       success: true,
-      data: group
+      data: result
     });
   } catch (error) {
     console.error('Error in getGroupDetails:', error);
-    
-    // More detailed error logging
-    if (error.name === 'MissingSchemaError') {
-      console.error('Missing Schema for Model:', error.message);
-    }
-    
     next(error);
   }
 };
@@ -128,7 +210,10 @@ export const inviteToGroup = async (req, res, next) => {
 
       if (user) {
         // Check if user is already a member
-        const isMember = group.members.some(m => m.user.toString() === user._id.toString());
+        const isMember = group.members.some(m => 
+          (m.user && m.user.toString() === user._id.toString()) || 
+          (m.email === email)
+        );
         
         if (!isMember) {
           updates.push({
@@ -137,12 +222,17 @@ export const inviteToGroup = async (req, res, next) => {
           });
         }
       } else {
-        // If user is not registered, send an invite and add email to the group
-        unregisteredEmails.push(email);
-        updates.push({
-          members: { email, accepted: false }, // Store email directly for unregistered users
-          progress: { email, percentage: 0 }
-        });
+        // Check if email is already in members
+        const isEmailMember = group.members.some(m => m.email === email);
+        
+        if (!isEmailMember) {
+          // If user is not registered, add email to the group
+          unregisteredEmails.push(email);
+          updates.push({
+            members: { email, accepted: false }, 
+            progress: { email, percentage: 0 }
+          });
+        }
       }
 
       // Send invitation email
@@ -259,7 +349,7 @@ export const updateProgress = async (req, res, next) => {
     }
 
     const memberExists = group.members.some(
-      m => m.user.toString() === userId && m.accepted
+      m => m.user && m.user.toString() === userId && m.accepted
     );
     if (!memberExists) {
       return next(createError(404, 'User is not an accepted member of this group'));

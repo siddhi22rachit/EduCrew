@@ -17,6 +17,9 @@ export const sendEmail = async ({ email, subject, message }) => {
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS
+      },
+      tls: {
+        rejectUnauthorized: false // <-- This bypasses self-signed certificate issues
       }
     });
     

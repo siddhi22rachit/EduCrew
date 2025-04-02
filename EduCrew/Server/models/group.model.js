@@ -10,6 +10,7 @@ const GroupSchema = new mongoose.Schema({
   members: [
     {
       user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      email: { type: String }, // Added email field for unregistered users
       accepted: { type: Boolean, default: false },
     },
   ],
@@ -26,6 +27,7 @@ const GroupSchema = new mongoose.Schema({
   progress: [
     {
       user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
+      email: { type: String }, // Added email field for unregistered users
       percentage: { type: Number, default: 0 },
     },
   ],
