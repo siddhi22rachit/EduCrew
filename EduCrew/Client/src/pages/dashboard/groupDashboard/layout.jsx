@@ -65,7 +65,7 @@ const Dashboard = () => {
       <div className="flex justify-between items-center bg-[#0A1128] rounded-lg p-4 mb-3">
         <div className="flex items-center space-x-4 flex-grow">
           <div className="flex items-center space-x-4">
-            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-blue-500 truncate">
+            <h1 className="text-2xl md:text-3xl lg:text-4xl font-bold text-blue-500 ">
               {group.name || "Unnamed Group"}
             </h1>
             <Edit2 className="text-blue-400 cursor-pointer hover:text-blue-600 w-4 h-4 md:w-5 md:h-5" />

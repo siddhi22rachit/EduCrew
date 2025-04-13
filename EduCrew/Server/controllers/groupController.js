@@ -31,16 +31,15 @@ export const createGroup = async (req, res) => {
     const registeredUsers = await User.find({ email: { $in: memberEmails } });
     console.log(`✅ Found ${registeredUsers.length} registered users:`, registeredUsers.map(u => u.email));
 
-    // Initialize members array with admin as accepted
+ 
     const members = [{ user: adminUserId, accepted: true }];
     const progressArray = [{ user: adminUserId, percentage: 0 }];
     
-    // Track emails for unregistered users
+   
     const unregisteredEmails = [];
 
-    // Process each email
+ 
     for (const email of memberEmails) {
-      // Skip admin's email as it's already added
       if (adminEmail && email === adminEmail) {
         console.log(`Skipping admin email: ${email}`);
         continue;
@@ -62,7 +61,6 @@ export const createGroup = async (req, res) => {
       }
     }
 
-    // Create the group with all members
     const newGroup = new Group({
       name,
       admin: adminUserId,
@@ -100,7 +98,7 @@ export const createGroup = async (req, res) => {
   }
 };
 
-// Get group details with improved handling of unregistered users
+
 export const getGroupDetails = async (req, res, next) => {
   try {
     const { groupId } = req.params;
@@ -116,7 +114,6 @@ export const getGroupDetails = async (req, res, next) => {
       return next(createError(404, 'Group not found'));
     }
 
-    // Conditionally populate tasks if they exist
     if (group.tasks && group.tasks.length > 0) {
       await group.populate({
         path: 'tasks',
@@ -127,7 +124,6 @@ export const getGroupDetails = async (req, res, next) => {
       });
     }
 
-    // Conditionally populate resources if they exist
     if (group.resources && group.resources.length > 0) {
       await group.populate({
         path: 'resources',

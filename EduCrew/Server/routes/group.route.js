@@ -17,7 +17,7 @@ router.use(verifyToken);
 router.post('/create', createGroup);
 router.get('/:groupId', getGroupDetails);
 router.post('/:groupId/invite', inviteToGroup);
-router.put('/:groupId/join', joinGroup); // Changed from POST to PUT to match your original code
+router.put('/:groupId/join', joinGroup);
 router.get('/:groupId/members', getGroupMembers);
 router.put('/:groupId/progress', updateProgress);
 
