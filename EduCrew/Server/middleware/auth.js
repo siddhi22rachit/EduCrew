@@ -2,7 +2,7 @@ import jwt from "jsonwebtoken";
 import { createError } from "../utils/error.js";
 
 export const verifyToken = (req, res, next) => {
-    const token = req.cookies.jwt; // Ensure jwt is stored in cookies
+    const token = req.cookies.jwt; 
     console.log("🔹 Received Token:", token);
     
     if (!token) {

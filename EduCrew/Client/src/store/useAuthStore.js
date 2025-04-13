@@ -41,6 +41,7 @@ export const useAuthStore = create((set, get) => ({
     set({ isLoggingIn: true })
     try {
       const res = await axiosInstance.post("/auth/login", data)
+      localStorage.setItem("token",res.data.token)
       set({ authUser: res.data })
       toast.success("Logged in successfully")
       return true // Return true on successful login

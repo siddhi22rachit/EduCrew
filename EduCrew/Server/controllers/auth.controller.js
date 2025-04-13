@@ -86,6 +86,7 @@ export const login = async (req, res) => {
     
     // Generate and set token
     const token = generateToken(user._id, res);
+    // localStorage.setItem("token", token);
     console.log("Generated token:", token);
     
     // Log the user ID for debugging
@@ -98,6 +99,7 @@ export const login = async (req, res) => {
       profilePic: user.profilePic,
       token // Include token in response
     });
+  
   } catch (error) {
     console.log("Error in Login controller", error.message);
     res.status(500).json({

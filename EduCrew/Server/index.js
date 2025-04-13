@@ -12,6 +12,7 @@ import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.route.js';
 import groupRoutes from './routes/group.route.js';
 import taskRoutes from './routes/task.route.js';
+import chatRoutes from './routes/chat.route.js';
 import { initializeSocket } from './socket/socketHandler.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { corsOptions, mongoOptions } from './config/options.js';
@@ -57,16 +58,12 @@ app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api', taskRoutes);
 app.use('/api/resources', resourceRoutes);
+app.use('/api/chat', chatRoutes); 
 
-// Static file serving
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 app.use(express.static(path.join(__dirname, '../client/dist')));
 
-// Catch-all route for SPA
-
-
-// Error handling
 app.use(errorHandler);
 
 server.listen(PORT, () => {
