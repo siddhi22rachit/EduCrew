@@ -148,7 +148,7 @@ export const getGroupDetails = async (req, res, next) => {
           ...member.toObject(),
           user: {
             _id: 'unregistered',
-            name: member.email.split('@')[0], // Use part before @ as name
+            name: member.email.split('@')[0], 
             email: member.email
           }
         };
@@ -194,7 +194,6 @@ export const inviteToGroup = async (req, res, next) => {
     
     console.log("Group admin ID:", group.admin.toString());
 
-    // Ensure only the admin can send invitations
     if (group.admin.toString() !== userId.toString()) {
       return next(createError(403, "Only admin can send invitations"));
     }
