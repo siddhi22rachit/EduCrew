@@ -6,7 +6,10 @@ import {
   inviteToGroup,
   joinGroup,
   getGroupMembers,
-  updateProgress
+  updateProgress,
+  acceptInvitation,
+  rejectInvitation,
+  getUserGroups
 } from '../controllers/groupController.js';
 
 const router = express.Router();
@@ -20,6 +23,12 @@ router.post('/:groupId/invite', inviteToGroup);
 router.put('/:groupId/join', joinGroup);
 router.get('/:groupId/members', getGroupMembers);
 router.put('/:groupId/progress', updateProgress);
+// Accept invitation
+router.post('/:groupId/accept', verifyToken, acceptInvitation);
+
+// Reject invitation
+router.post('/:groupId/reject', verifyToken,rejectInvitation);
+router.get('/', getUserGroups);
 
 // Add this route to your group routes
 router.get('/test-auth', verifyToken, (req, res) => {

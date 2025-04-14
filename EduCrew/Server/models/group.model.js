@@ -12,6 +12,7 @@ const GroupSchema = new mongoose.Schema({
       user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
       email: { type: String }, // Added email field for unregistered users
       accepted: { type: Boolean, default: false },
+     
     },
   ],
   tasks: [{ 
