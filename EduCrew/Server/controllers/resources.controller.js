@@ -10,6 +10,8 @@ const resourceController = {
             const { groupId } = req.params;
             const { title } = req.body;
             const file = req.file; // From multer middleware
+            
+
             const userId = req.user.userId;
     
             if (!file) return next(createError(400, 'No file uploaded'));
