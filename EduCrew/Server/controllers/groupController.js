@@ -80,9 +80,10 @@ export const createGroup = async (req, res) => {
       const emailSent = await sendEmail({
         email,
         subject: "EduCrew Group Invitation",
-        message: `You've been invited to join the group "${name}" on EduCrew. Click here to accept: ${inviteUrl}`
+        message: `You've been invited to join the group "${name}" on EduCrew. Click here to accept: ${inviteUrl}`,
+        groupId: newGroup._id // Pass the groupId for the email template
       });
-
+    
       console.log(`📩 Invitation email to ${email}: ${emailSent ? "sent" : "failed"}`);
     }
 
@@ -144,7 +145,7 @@ export const getGroupDetails = async (req, res, next) => {
           ...member.toObject(),
           user: {
             _id: 'unregistered',
-            name: member.email.split('@')[0], // Use part before @ as name
+            name: member.email.split('@')[0], 
             email: member.email
           }
         };
@@ -165,6 +166,8 @@ export const getGroupDetails = async (req, res, next) => {
     next(error);
   }
 };
+
+
 
 // Accept invitation and join group
 export const inviteToGroup = async (req, res, next) => {
@@ -190,7 +193,6 @@ export const inviteToGroup = async (req, res, next) => {
     
     console.log("Group admin ID:", group.admin.toString());
 
-    // Ensure only the admin can send invitations
     if (group.admin.toString() !== userId.toString()) {
       return next(createError(403, "Only admin can send invitations"));
     }
@@ -233,11 +235,12 @@ export const inviteToGroup = async (req, res, next) => {
 
       // Send invitation email
       const inviteUrl = `${process.env.CLIENT_URL}/register?groupId=${groupId}&email=${encodeURIComponent(email)}`;
-      const emailSent = await sendEmail({
-        email,
-        subject: "EduCrew Group Invitation",
-        message: `You've been invited to join the group "${group.name}" on EduCrew. Click here to accept: ${inviteUrl}`
-      });
+const emailSent = await sendEmail({
+  email,
+  subject: "EduCrew Group Invitation",
+  message: `You've been invited to join the group "${group.name}" on EduCrew. Click here to accept: ${inviteUrl}`,
+  groupId: groupId // Pass the groupId for the email template
+});
 
       console.log(`📩 Invitation email to ${email}: ${emailSent ? "sent" : "failed"}`);
     }
@@ -258,6 +261,106 @@ export const inviteToGroup = async (req, res, next) => {
     });
   } catch (error) {
     console.error("❌ Error sending invitations:", error);
+    next(error);
+  }
+};
+
+// Accept invitation endpoint
+export const acceptInvitation = async (req, res, next) => {
+  try {
+    const { groupId } = req.params;
+    const { email } = req.body;
+    
+    // Get the current user's token information
+    const userId = req.user?.userId || req.user?.id;
+    
+    // Find the group
+    const group = await Group.findById(groupId);
+    
+    if (!group) {
+      return next(createError(404, "Group not found"));
+    }
+    
+    // Find the member in the group by email
+    const memberIndex = group.members.findIndex(
+      m => (m.email === email) || (m.user && m.user.toString() === userId)
+    );
+    
+    if (memberIndex === -1) {
+      return next(createError(404, "User not found in this group"));
+    }
+    
+    // Update the member's status
+    if (group.members[memberIndex].email) {
+      // If the member is identified by email (not registered yet)
+      // Convert the email-based invitation to user-based
+      if (userId) {
+        // The user is now registered, update their status
+        group.members[memberIndex] = {
+          user: userId,
+          accepted: true,
+          rejected: false
+        };
+      } else {
+        // Just update the status but keep as email-based
+        group.members[memberIndex].accepted = true;
+        group.members[memberIndex].rejected = false;
+      }
+    } else {
+      // User already registered, just update status
+      group.members[memberIndex].accepted = true;
+      group.members[memberIndex].rejected = false;
+    }
+    
+    await group.save();
+    
+    res.status(200).json({
+      success: true,
+      message: "Invitation accepted successfully"
+    });
+  } catch (error) {
+    console.error("❌ Error accepting invitation:", error);
+    next(error);
+  }
+};
+
+// Reject invitation endpoint
+export const rejectInvitation = async (req, res, next) => {
+  try {
+    const { groupId } = req.params;
+    const { email } = req.body;
+    
+    // Get the current user's token information
+    const userId = req.user?.userId || req.user?.id;
+    
+    // Find the group
+    const group = await Group.findById(groupId);
+    
+    if (!group) {
+      return next(createError(404, "Group not found"));
+    }
+    
+    // Find the member in the group by email or user ID
+    const memberIndex = group.members.findIndex(
+      m => (m.email === email) || (m.user && m.user.toString() === userId)
+    );
+    
+    if (memberIndex === -1) {
+      return next(createError(404, "User not found in this group"));
+    }
+    
+    // Update the member's status
+    group.members[memberIndex].rejected = true;
+    group.members[memberIndex].accepted = false;
+    
+    await group.save();
+    
+    res.status(200).json({
+      success: true,
+      message: "Invitation rejected successfully"
+    });
+  } catch (error) {
+    console.error("❌ Error rejecting invitation:", error);
     next(error);
   }
 };
@@ -361,6 +464,52 @@ export const updateProgress = async (req, res, next) => {
       message: 'Progress updated successfully'
     });
   } catch (error) {
+    next(error);
+  }
+};
+
+
+export const getUserGroups = async (req, res, next) => {
+  try {
+    const userId = req.user?.userId || req.user?.id;
+    const userEmail = req.user?.email;
+    
+    if (!userId && !userEmail) {
+      return next(createError(401, "Authentication required"));
+    }
+    
+    // Find groups where user is either a registered member or invited by email
+    const groups = await Group.find({
+      $or: [
+        { admin: userId }, // User is admin
+        { 'members.user': userId }, // User is a registered member
+        { 'members.email': userEmail } // User was invited by email
+      ]
+    }).select('_id name admin members');
+
+    // Populate admin info for each group
+    await Group.populate(groups, {
+      path: 'admin',
+      select: 'name email'
+    });
+    
+    // Format response to include only necessary data
+    const formattedGroups = groups.map(group => {
+      const memberCount = group.members.length;
+      
+      return {
+        _id: group._id,
+        groupName: group.name, // Using groupName to match existing frontend component
+        adminName: group.admin?.name || 'Unknown',
+        adminEmail: group.admin?.email || 'Unknown',
+        memberCount: memberCount,
+        isAdmin: group.admin?._id.toString() === userId
+      };
+    });
+    
+    res.status(200).json(formattedGroups);
+  } catch (error) {
+    console.error("❌ Error fetching user groups:", error);
     next(error);
   }
 };
