@@ -23,14 +23,11 @@ router.post('/:groupId/invite', inviteToGroup);
 router.put('/:groupId/join', joinGroup);
 router.get('/:groupId/members', getGroupMembers);
 router.put('/:groupId/progress', updateProgress);
-// Accept invitation
 router.post('/:groupId/accept', verifyToken, acceptInvitation);
 
-// Reject invitation
 router.post('/:groupId/reject', verifyToken,rejectInvitation);
-router.get('/', getUserGroups);
+router.get('/user/:userId',verifyToken, getUserGroups);
 
-// Add this route to your group routes
 router.get('/test-auth', verifyToken, (req, res) => {
   res.status(200).json({
     success: true,

@@ -25,7 +25,7 @@ if (!fs.existsSync('uploads')) {
 
 const upload = multer({ storage: storage });
 router.use(verifyToken)
-// Resource routes
+
 router.post('/:groupId/add', upload.single('file'), resourceController.addResource);
 router.get('/:groupId', resourceController.getGroupResources);
 router.delete('/:resourceId', resourceController.deleteResource);

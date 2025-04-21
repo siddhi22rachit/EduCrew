@@ -8,7 +8,7 @@ export const createGroup = async (req, res) => {
     console.log("🔹 Incoming request body:", req.body);
     console.log("🔹 req.user:", req.user);
 
-    // Extract name and memberEmails from request body
+    
     const { name, memberEmails = [] } = req.body;
     const adminUserId = req.user?.userId; 
     const adminEmail = req.user?.email;
@@ -473,17 +473,24 @@ export const getUserGroups = async (req, res, next) => {
   try {
     const userId = req.user?.userId || req.user?.id;
     const userEmail = req.user?.email;
+
     
     if (!userId && !userEmail) {
       return next(createError(401, "Authentication required"));
     }
-    
-    // Find groups where user is either a registered member or invited by email
+
+    // Find groups where user is either admin or an accepted member
     const groups = await Group.find({
       $or: [
         { admin: userId }, // User is admin
-        { 'members.user': userId }, // User is a registered member
-        { 'members.email': userEmail } // User was invited by email
+        
+        { 
+          members: {
+            $elemMatch: {
+              user: userId,
+            }
+          }
+        }
       ]
     }).select('_id name admin members');
 
@@ -495,12 +502,12 @@ export const getUserGroups = async (req, res, next) => {
     
     // Format response to include only necessary data
     const formattedGroups = groups.map(group => {
-      const memberCount = group.members.length;
+      // Only count accepted members
+      const memberCount = group.members.filter(member => member).length;
       
       return {
         _id: group._id,
-        groupName: group.name, // Using groupName to match existing frontend component
-        adminName: group.admin?.name || 'Unknown',
+        groupName: group.name, 
         adminEmail: group.admin?.email || 'Unknown',
         memberCount: memberCount,
         isAdmin: group.admin?._id.toString() === userId

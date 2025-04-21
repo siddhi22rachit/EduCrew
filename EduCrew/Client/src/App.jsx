@@ -16,6 +16,7 @@ import RoomPage from "./pages/dashboard/Video_call/Room";
 import CalendarPage from "./pages/dashboard/calender";
 import UpdateGroup from "./pages/dashboard/createGroup/UpdateGroup";
 import Layout from "./pages/dashboard/groupDashboard/layout"
+import GroupPage from "./pages/dashboard/groupDashboard/groupPage";
 
 export default function App() {
   return (
@@ -33,8 +34,9 @@ export default function App() {
 
           {/* Dashboard Layout with Nested Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
+          
             <Route index element={<Dashboard />} />  {/* Default dashboard page */}
-            <Route path="group" element={<GroupView />} />
+            <Route path="group" element={<GroupPage />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="tasks/:groupId" element={<TaskPage />} />
             <Route path="calendar" element={<CalendarPage />} />
