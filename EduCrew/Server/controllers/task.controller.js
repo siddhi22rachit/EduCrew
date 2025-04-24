@@ -6,27 +6,32 @@ import Group from "../models/group.model.js";
  */
 export const createTask = async (req, res) => {
     try {
-        const { groupId, title, description, deadline, subtasks } = req.body;
+        const { group, title, description, deadline, subtasks } = req.body;
         const userId = req.user.id;
+       
+        
+        const groupID = await Group.findById(group);
+        
+        if (!groupID) return res.status(404).json({ message: "Group not found" });
 
-        const group = await Group.findById(groupId);
-        if (!group) return res.status(404).json({ message: "Group not found" });
-
-        if (group.admin.toString() !== userId) {
+        if (groupID.admin.toString() !== userId) {
             return res.status(403).json({ message: "Only admin can create tasks" });
         }
 
         const task = new Task({
-            group: groupId,
+            group: groupID,
             title,
             description,
             deadline,
-            subtasks: subtasks.map(subtask => ({ name: subtask, completedBy: [] })),
+            subtasks: subtasks.map(subtask => ({
+                 title: subtask.title,
+                completedBy: subtask.completedBy || []
+                })),
         });
 
         await task.save();
-        group.tasks.push(task._id);
-        await group.save();
+        groupID.tasks.push(task._id);
+        await groupID.save();
 
         res.status(201).json({ message: "Task created successfully", task });
     } catch (error) {
@@ -37,18 +42,46 @@ export const createTask = async (req, res) => {
 /**
  * Get task details
  */
-export const getTaskDetails = async (req, res) => {
-    try {
-        const { taskId } = req.params;
-        const task = await Task.findById(taskId).populate("group");
+    export const getTaskDetails = async (req, res) => {
+        try {
+            const { taskId } = req.params;
+            const task = await Task.findById(taskId).populate("group");
 
-        if (!task) return res.status(404).json({ message: "Task not found" });
+            if (!task) return res.status(404).json({ message: "Task not found" });
 
-        res.status(200).json(task);
-    } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
+            res.status(200).json(task);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    };
+
+    export const getTasksByGroup = async (req, res) => {
+        try {
+            const { groupId } = req.params;
+            const userId = req.user.id;
+    
+            // Find the group to verify access
+            const group = await Group.findById(groupId);
+            if (!group) return res.status(404).json({ message: "Group not found" });
+    
+            // Verify the user is a member or admin of this group
+            const isAdmin = group.admin.toString() === userId;
+            const isMember = group.members.some(member => 
+                member.user && member.user.toString() === userId && member.accepted
+            );
+    
+            if (!isAdmin && !isMember) {
+                return res.status(403).json({ message: "Access denied" });
+            }
+    
+            // Fetch all tasks for this group
+            const tasks = await Task.find({ group: groupId });
+            
+            res.status(200).json(tasks);
+        } catch (error) {
+            res.status(500).json({ message: error.message });
+        }
+    };
 
 /**
  * Update task details (Only admin)

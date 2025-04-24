@@ -479,10 +479,9 @@ export const getUserGroups = async (req, res, next) => {
       return next(createError(401, "Authentication required"));
     }
 
-    // Find groups where user is either admin or an accepted member
     const groups = await Group.find({
       $or: [
-        { admin: userId }, // User is admin
+        { admin: userId }, 
         
         { 
           members: {

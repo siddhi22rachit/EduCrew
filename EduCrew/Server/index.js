@@ -56,7 +56,7 @@ app.use(cookieParser());
 // app.use('/api/user', userRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
-app.use('/api', taskRoutes);
+app.use('/api/tasks', taskRoutes);
 app.use('/api/resources', resourceRoutes);
 app.use('/api/chat', chatRoutes); 
 
