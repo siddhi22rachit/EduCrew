@@ -3,35 +3,39 @@ import { Link, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff } from 'lucide-react';
 import { useAuthStore } from '../../store/useAuthStore';
 import toast from 'react-hot-toast';
+import { useLocation } from "react-router-dom";
 
 
 export default function LoginPage() {
-  const [showPassword, setShowPassword] = useState(false)
-  const { login, isLoggingIn, isUserValid } = useAuthStore()
+  const [showPassword, setShowPassword] = useState(false);
+  const { login, isLoggingIn, isUserValid } = useAuthStore();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
-  })
-  const navigate = useNavigate()
+  });
+
+  const navigate = useNavigate();
+  const location = useLocation(); // get location
+  const redirectTo = location.state?.from || "/dashboard"; // fallback to dashboard
 
   useEffect(() => {
     if (isUserValid()) {
-      navigate("/dashboard")
+      navigate(redirectTo);
     }
-  }, [isUserValid, navigate])
+  }, [isUserValid, navigate, redirectTo]);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.id]: e.target.value })
-  }
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
 
   const handleSubmit = async (e) => {
-    e.preventDefault()
-    const success = await login(formData)
+    e.preventDefault();
+    const success = await login(formData);
     if (success) {
-      toast.success("Login successful!")
-      navigate("/dashboard")
+      toast.success("Login successful!");
+      navigate(redirectTo);
     }
-  }
+  };
 
   return (
     <div className="min-h-screen relative bg-black overflow-hidden">

@@ -16,8 +16,17 @@ import RoomPage from "./pages/dashboard/Video_call/Room";
 import CalendarPage from "./pages/dashboard/calender";
 import UpdateGroup from "./pages/dashboard/createGroup/UpdateGroup";
 import Layout from "./pages/dashboard/groupDashboard/layout"
+import GroupInvite from "./pages/dashboard/groupDashboard/groupInvite";
+import { useEffect } from "react";
+import { useAuthStore } from "./store/useAuthStore";
 
 export default function App() {
+  const checkAuth = useAuthStore((state) => state.checkAuth);
+
+  useEffect(() => {
+    checkAuth(); // 🔑 This checks and sets authUser on page refresh
+  }, [checkAuth]);
+
   return (
     <BrowserRouter>
       <Routes>
@@ -40,6 +49,7 @@ export default function App() {
             <Route path="calendar" element={<CalendarPage />} />
             <Route path="video-calls" element={<VideoCall />} />
             <Route path="resources" element={<ResourcesPage />} />
+            <Route path="group/invite/:groupId" element={<GroupInvite/>}/>
 
             {/* Group-related routes */}
             <Route path="group-form" element={<CreateStudyGroupForm />} />

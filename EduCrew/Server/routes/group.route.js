@@ -3,13 +3,15 @@ import { verifyToken } from '../middleware/auth.js';
 import {
   createGroup,
   getGroupDetails,
-  inviteToGroup,
+  // inviteToGroup,
+  acceptInvite,
   joinGroup,
   getGroupMembers,
   updateProgress,
-  acceptInvitation,
-  rejectInvitation,
-  getUserGroups
+  // acceptInvitation,
+  // rejectInvitation,
+  // getUserGroups,
+  handleInvitation
 } from '../controllers/groupController.js';
 
 const router = express.Router();
@@ -19,16 +21,18 @@ router.use(verifyToken);
 
 router.post('/create', createGroup);
 router.get('/:groupId', getGroupDetails);
-router.post('/:groupId/invite', inviteToGroup);
+// router.post('/:groupId/invite', inviteToGroup);
+router.post("/invite/accept", acceptInvite);
 router.put('/:groupId/join', joinGroup);
 router.get('/:groupId/members', getGroupMembers);
 router.put('/:groupId/progress', updateProgress);
-// Accept invitation
-router.post('/:groupId/accept', verifyToken, acceptInvitation);
+router.get("/invite",handleInvitation);
+// // Accept invitation
+// router.post('/:groupId/accept', verifyToken, acceptInvitation);
 
-// Reject invitation
-router.post('/:groupId/reject', verifyToken,rejectInvitation);
-router.get('/', getUserGroups);
+// // Reject invitation
+// router.post('/:groupId/reject', verifyToken,rejectInvitation);
+// router.get('/', getUserGroups);
 
 // Add this route to your group routes
 router.get('/test-auth', verifyToken, (req, res) => {
