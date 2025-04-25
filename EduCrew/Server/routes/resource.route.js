@@ -18,13 +18,14 @@ const storage = multer.diskStorage({
 
 // Create uploads directory if it doesn't exist
 import fs from 'fs';
+import { verifyToken } from '../middleware/auth.js';
 if (!fs.existsSync('uploads')) {
   fs.mkdirSync('uploads');
 }
 
 const upload = multer({ storage: storage });
+router.use(verifyToken)
 
-// Resource routes
 router.post('/:groupId/add', upload.single('file'), resourceController.addResource);
 router.get('/:groupId', resourceController.getGroupResources);
 router.delete('/:resourceId', resourceController.deleteResource);

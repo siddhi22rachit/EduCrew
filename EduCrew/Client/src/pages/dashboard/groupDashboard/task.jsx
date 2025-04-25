@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PlusCircle, X, CheckCircle2, Calendar, Trash2 } from 'lucide-react';
+import { axiosInstance } from '../../../lib/axios'; 
 
 const TaskBox = ({ groupId }) => {
   const [isAddTaskModalOpen, setIsAddTaskModalOpen] = useState(false);
@@ -10,39 +11,104 @@ const TaskBox = ({ groupId }) => {
     subtasks: []
   });
   const [editingTask, setEditingTask] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [userProgress, setUserProgress] = useState(0);
 
-  const handleAddTask = () => {
-    if (!newTask.title) {
-      alert('Please enter a task title');
-      return;
+  useEffect(() => {
+    if (groupId) {
+      fetchTasks();
+      // fetchUserProgress();
     }
+  }, [groupId]);
 
-    const taskToAdd = {
-      ...newTask,
-      id: Date.now(),
-      createdAt: new Date(),
-      completed: false
-    };
-
-    setTasks([...tasks, taskToAdd]);
-    resetTaskState();
+  const fetchTasks = async () => {
+    try {
+      setLoading(true);
+      // Get all tasks for the group in a single request
+      const response = await axiosInstance.get(`/tasks/group/${groupId}`);
+      setTasks(response.data);
+      setLoading(false);
+    } catch (err) {
+      console.error("Error fetching tasks:", err);
+      setError("Failed to load tasks");
+      setLoading(false);
+    }
   };
 
-  const handleUpdateTask = () => {
+  // const fetchUserProgress = async () => {
+  //   try {
+  //     const response = await axiosInstance.get(`/task/${groupId}/progress`);
+  //     setUserProgress(response.data.progress);
+  //   } catch (err) {
+  //     console.error("Error fetching user progress:", err);
+  //   }
+  // };
+
+  const handleAddTask = async () => {
     if (!newTask.title) {
       alert('Please enter a task title');
       return;
     }
 
-    setTasks(prevTasks => 
-      prevTasks.map(task => 
-        task.id === editingTask.id 
-          ? { ...newTask, id: task.id } 
-          : task
-      )
-    );
+    try {
+      // Format subtasks as expected by the backend
+      const formattedSubtasks = newTask.subtasks.map(subtask => ({
+        title: subtask.title,
+        completedBy: []
+      }));
+      
+      const response = await axiosInstance.post('/tasks/create', {
+        group: groupId,
+        title: newTask.title,
+        deadline: newTask.deadline,
+        subtasks: formattedSubtasks
+      });
 
-    resetTaskState();
+      // Refresh tasks after adding a new one
+      fetchTasks();
+      resetTaskState();
+    } catch (err) {
+      console.error("Error creating task:", err);
+      alert(err.response?.data?.message || "Failed to create task");
+    }
+  };
+
+  const handleUpdateTask = async () => {
+    if (!newTask.title) {
+      alert('Please enter a task title');
+      return;
+    }
+
+    try {
+      // Format subtasks as expected by the backend
+      const formattedSubtasks = newTask.subtasks.map(subtask => subtask.title);
+      
+      const response = await axiosInstance.put(`/task/${editingTask._id}`, {
+        title: newTask.title,
+        deadline: newTask.deadline,
+        subtasks: formattedSubtasks
+      });
+
+      // Refresh tasks after updating
+      fetchTasks();
+      resetTaskState();
+    } catch (err) {
+      console.error("Error updating task:", err);
+      alert(err.response?.data?.message || "Failed to update task");
+    }
+  };
+
+  const handleDeleteTask = async (taskId) => {
+    try {
+      await axiosInstance.delete(`/tasks/${taskId}`);
+      
+      // Remove the task from local state
+      setTasks(prevTasks => prevTasks.filter(task => task._id !== taskId));
+    } catch (err) {
+      console.error("Error deleting task:", err);
+      alert(err.response?.data?.message || "Failed to delete task");
+    }
   };
 
   const resetTaskState = () => {
@@ -81,31 +147,67 @@ const TaskBox = ({ groupId }) => {
     }));
   };
 
-  const toggleSubtaskCompletion = (taskId, subtaskIndex) => {
-    setTasks(prevTasks => 
-      prevTasks.map(task => {
-        if (task.id === taskId) {
-          const updatedSubtasks = [...task.subtasks];
-          updatedSubtasks[subtaskIndex] = {
-            ...updatedSubtasks[subtaskIndex],
-            completed: !updatedSubtasks[subtaskIndex].completed
-          };
-          return { ...task, subtasks: updatedSubtasks };
-        }
-        return task;
-      })
-    );
+  const toggleSubtaskCompletion = async (taskId, subtaskIndex) => {
+    try {
+      await axiosInstance.post('/tasks/subtask/complete', {
+        taskId,
+        subtaskIndex
+      });
+      
+      // Refresh tasks to get updated completion status
+      fetchTasks();
+      // fetchUserProgress();
+    } catch (err) {
+      console.error("Error completing subtask:", err);
+      alert(err.response?.data?.message || "Failed to complete subtask");
+    }
   };
 
   const openEditModal = (task) => {
-    setNewTask({ ...task });
+    // Format the task data for editing
+    const formattedTask = {
+      ...task,
+      subtasks: task.subtasks.map(subtask => ({
+        title: subtask.title,
+        completed: isSubtaskCompleted(subtask)
+      }))
+    };
+    
+    setNewTask(formattedTask);
     setEditingTask(task);
     setIsAddTaskModalOpen(true);
   };
 
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return 'No deadline';
+    const date = new Date(dateString);
+    return date.toLocaleDateString();
+  };
+
+  // Check if current user has completed a subtask
+  const isSubtaskCompleted = (subtask) => {
+    // Get current user ID from localStorage or auth context
+    const currentUserId = localStorage.getItem('userId'); // Adjust based on your auth implementation
+    return subtask.completedBy?.some(id => id === currentUserId);
+  };
+
+  if (loading) return <div className="flex justify-center items-center h-full">Loading tasks...</div>;
+  if (error) return <div className="text-red-500 text-center">{error}</div>;
+
   return (
     <div className="relative h-full">
-     
+      {userProgress > 0 && (
+        <div className="mb-4">
+          <p className="text-blue-300">Your Progress: {Math.round(userProgress)}%</p>
+          <div className="w-full bg-blue-900/30 rounded-full h-2.5">
+            <div 
+              className="bg-blue-600 h-2.5 rounded-full" 
+              style={{ width: `${userProgress}%` }}
+            ></div>
+          </div>
+        </div>
+      )}
 
       <div className="bg-[#0A1128] rounded-lg shadow-xl h-full text-white flex flex-col">
         {tasks.length === 0 ? (
@@ -128,7 +230,7 @@ const TaskBox = ({ groupId }) => {
           <div className="p-6 space-y-4 overflow-y-auto flex-grow">
             {tasks.map((task) => (
               <div 
-                key={task.id} 
+                key={task._id} 
                 className="bg-blue-900/30 rounded-lg p-4 relative"
               >
                 <div className="flex justify-between items-start mb-3">
@@ -142,14 +244,18 @@ const TaskBox = ({ groupId }) => {
                     >
                       Edit
                     </button>
+                    <button 
+                      onClick={() => handleDeleteTask(task._id)}
+                      className="text-red-400 hover:text-red-600"
+                    >
+                      <Trash2 size={20} />
+                    </button>
                   </div>
                 </div>
 
                 <div className="flex items-center text-blue-400 text-sm mb-3">
                   <Calendar className="mr-2" size={16} />
-                  {task.deadline 
-                    ? new Date(task.deadline).toLocaleDateString() 
-                    : 'No deadline'}
+                  {formatDate(task.deadline)}
                 </div>
 
                 <div className="space-y-2">
@@ -159,17 +265,17 @@ const TaskBox = ({ groupId }) => {
                       className="flex items-center space-x-2"
                     >
                       <button 
-                        onClick={() => toggleSubtaskCompletion(task.id, index)}
+                        onClick={() => toggleSubtaskCompletion(task._id, index)}
                         className="focus:outline-none"
                       >
-                        {subtask.completed ? (
+                        {isSubtaskCompleted(subtask) ? (
                           <CheckCircle2 className="text-blue-500" size={30} />
                         ) : (
                           <div className="w-5 h-5 border-2 border-blue-400 rounded-full" />
                         )}
                       </button>
                       <span 
-                        className={`text-grey-300 text-xl flex-grow ${subtask.completed ? 'line-through' : ''}`}
+                        className={`text-grey-300 text-xl flex-grow ${isSubtaskCompleted(subtask) ? 'line-through' : ''}`}
                       >
                         {subtask.title}
                       </span>
@@ -178,6 +284,18 @@ const TaskBox = ({ groupId }) => {
                 </div>
               </div>
             ))}
+          </div>
+        )}
+
+        {/* Add Task Button */}
+        {tasks.length > 0 && (
+          <div className="p-4 border-t border-blue-800">
+            <button 
+              onClick={() => setIsAddTaskModalOpen(true)}
+              className="w-full bg-blue-600 text-white hover:bg-blue-700 py-2 rounded-lg flex items-center justify-center"
+            >
+              <PlusCircle size={20} className="mr-2" /> Add New Task
+            </button>
           </div>
         )}
 
@@ -212,7 +330,7 @@ const TaskBox = ({ groupId }) => {
                   <label className="block text-blue-300 mb-2">Deadline</label>
                   <input 
                     type="date"
-                    value={newTask.deadline}
+                    value={newTask.deadline ? new Date(newTask.deadline).toISOString().split('T')[0] : ''}
                     onChange={(e) => setNewTask(prev => ({ ...prev, deadline: e.target.value }))}
                     className="w-full bg-blue-900/50 border border-blue-800 rounded p-2 text-white"
                   />

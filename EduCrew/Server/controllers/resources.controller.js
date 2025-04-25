@@ -10,6 +10,8 @@ const resourceController = {
             const { groupId } = req.params;
             const { title } = req.body;
             const file = req.file; // From multer middleware
+            
+
             const userId = req.user.userId;
     
             if (!file) return next(createError(400, 'No file uploaded'));
@@ -27,9 +29,9 @@ const resourceController = {
             // Upload file to Cloudinary
             const cloudinaryResult = await cloudinary.uploader.upload(file.path, {
                 folder: `group-resources/${groupId}`,
-                resource_type: 'auto', // Automatically detect file type
-                use_filename: true,    // Use original filename
-                unique_filename: true  // Ensure unique names
+                resource_type: 'auto', 
+                use_filename: true,    
+                unique_filename: true 
             });
 
             // Get file extension to determine file type
@@ -49,6 +51,8 @@ const resourceController = {
             });
             
             await resource.save();
+            group.resources.push(resource._id);
+            await group.save();
     
             // If using multer with local storage, clean up the temp file
             if (file.path) {
@@ -118,6 +122,10 @@ const resourceController = {
 
             // Delete from database
             await Resource.findByIdAndDelete(resourceId);
+
+            // Remove resource ID from group
+            group.resources = group.resources.filter(resId => resId.toString() !== resourceId);
+            await group.save();
 
             res.status(200).json({
                 success: true,

@@ -11,7 +11,8 @@ import {
   BookOpen,
   Home,
   Menu,
-  X
+  X,
+  User
 } from 'lucide-react';
 
 const Sidebar = () => {
@@ -26,10 +27,10 @@ const Sidebar = () => {
     },
     // { icon: MessageCircle, label: 'Chat', path: '/dashboard/chat' },
     // { icon: CheckSquare, label: 'Tasks', path: '/dashboard/tasks' },
-    { icon: Users, label: 'Groups', path: '/dashboard/group' },
+    // { icon: Users, label: 'Groups', path: '/dashboard/group' },
     { icon: Calendar, label: 'Calendar', path: '/dashboard/calendar-page' },
     { icon: Video, label: 'Video Calls', path: '/dashboard/video-calls' },
-    // { icon: BookOpen, label: 'Resources', path: '/dashboard/resources' }
+    {icon: User, label: 'Groups', path: '/dashboard/group'},
   ];
 
   return (

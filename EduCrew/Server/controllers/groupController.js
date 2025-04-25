@@ -515,19 +515,19 @@ export const getUserGroups = async (req, res, next) => {
   try {
     const userId = req.user?.userId || req.user?.id;
     const userEmail = req.user?.email;
-
+    
     if (!userId && !userEmail) {
       return next(createError(401, "Authentication required"));
     }
-
+    
     // Find groups where user is either a registered member or invited by email
     const groups = await Group.find({
       $or: [
         { admin: userId }, // User is admin
-        { "members.user": userId }, // User is a registered member
-        { "members.email": userEmail }, // User was invited by email
-      ],
-    }).select("_id name admin members");
+        { 'members.user': userId }, // User is a registered member
+        { 'members.email': userEmail } // User was invited by email
+      ]
+    }).select('_id name admin members');
 
     // Populate admin info for each group
     await Group.populate(groups, {
@@ -536,14 +536,14 @@ export const getUserGroups = async (req, res, next) => {
     });
 
     // Format response to include only necessary data
-    const formattedGroups = groups.map((group) => {
+    const formattedGroups = groups.map(group => {
       const memberCount = group.members.length;
-
+      
       return {
         _id: group._id,
         groupName: group.name, // Using groupName to match existing frontend component
-        adminName: group.admin?.name || "Unknown",
-        adminEmail: group.admin?.email || "Unknown",
+        adminName: group.admin?.name || 'Unknown',
+        adminEmail: group.admin?.email || 'Unknown',
         memberCount: memberCount,
         isAdmin: group.admin?._id.toString() === userId,
       };

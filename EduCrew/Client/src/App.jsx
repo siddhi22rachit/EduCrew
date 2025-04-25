@@ -19,6 +19,7 @@ import Layout from "./pages/dashboard/groupDashboard/layout"
 import GroupInvite from "./pages/dashboard/groupDashboard/groupInvite";
 import { useEffect } from "react";
 import { useAuthStore } from "./store/useAuthStore";
+import GroupPage from "./pages/dashboard/groupDashboard/groupPage";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);
@@ -42,8 +43,9 @@ export default function App() {
 
           {/* Dashboard Layout with Nested Routes */}
           <Route path="/dashboard" element={<DashboardLayout />}>
+          
             <Route index element={<Dashboard />} />  {/* Default dashboard page */}
-            <Route path="group" element={<GroupView />} />
+            <Route path="group" element={<GroupPage />} />
             <Route path="chat" element={<ChatPage />} />
             <Route path="tasks/:groupId" element={<TaskPage />} />
             <Route path="calendar" element={<CalendarPage />} />
