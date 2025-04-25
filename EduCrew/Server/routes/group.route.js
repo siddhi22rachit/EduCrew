@@ -33,10 +33,10 @@ router.get("/invite",handleInvitation);
 // // Reject invitation
 // router.post('/:groupId/reject', verifyToken,rejectInvitation);
 // router.get('/', getUserGroups);
-router.post('/:groupId/accept', verifyToken, acceptInvitation);
+// router.post('/:groupId/accept', verifyToken, acceptInvitation);
 
-router.post('/:groupId/reject', verifyToken,rejectInvitation);
-router.get('/user/:userId',verifyToken, getUserGroups);
+// router.post('/:groupId/reject', verifyToken,rejectInvitation);
+// router.get('/user/:userId',verifyToken, getUserGroups);
 
 router.get('/test-auth', verifyToken, (req, res) => {
   res.status(200).json({
