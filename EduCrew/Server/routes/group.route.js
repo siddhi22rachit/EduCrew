@@ -27,8 +27,18 @@ router.get('/:groupId/members', getGroupMembers);
 router.put('/:groupId/progress', updateProgress);
 router.get("/invite",handleInvitation);
 
+
 router.get('/user/:userId',verifyToken, getUserGroups);
 router.delete("/:groupId", verifyToken, deleteGroup);
+
+// // Reject invitation
+// router.post('/:groupId/reject', verifyToken,rejectInvitation);
+// router.get('/', getUserGroups);
+// router.post('/:groupId/accept', verifyToken, acceptInvitation);
+
+// router.post('/:groupId/reject', verifyToken,rejectInvitation);
+// router.get('/user/:userId',verifyToken, getUserGroups);
+
 
 router.get('/test-auth', verifyToken, (req, res) => {
   res.status(200).json({
