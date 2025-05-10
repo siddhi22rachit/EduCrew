@@ -20,7 +20,7 @@ const GroupView = () => {
       const token = localStorage.getItem("authToken")
 
       // Log the token to verify it exists (for debugging)
-      console.log("🔹 Sending token:", token ? "Token exists" : "No token found")
+      // console.log("🔹 Sending token:", token ? "Token exists" : "No token found")
 
       if (!token) {
         throw new Error("No authentication token found. Please log in again.")
@@ -32,7 +32,7 @@ const GroupView = () => {
         },
       })
 
-      console.log("Groups data received:", response.data)
+      // console.log("Groups data received:", response.data)
       setGroups(response.data)
       setError(null) // Clear any previous errors
     } catch (err) {

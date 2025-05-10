@@ -62,8 +62,8 @@ const GroupInvite = () => {
       console.error("❌ User not found or not logged in");
       return;
     }
-    console.log(groupId);
-    console.log(userEmail);
+    // console.log(groupId);
+    // console.log(userEmail);
     try {
       const token = localStorage.getItem("token");
      

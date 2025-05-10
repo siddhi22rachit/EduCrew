@@ -5,7 +5,7 @@ export const protectRoute = async (req, res, next) => {
   try {
     let token = req.cookies.jwt || req.headers.authorization?.split(" ")[1];
 
-    console.log("🔹 Incoming Token:", token);
+    // console.log("🔹 Incoming Token:", token);
 
     if (!token) {
       console.log("❌ No token provided");
@@ -13,7 +13,7 @@ export const protectRoute = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log("✅ Decoded Token:", decoded);
+    // console.log("✅ Decoded Token:", decoded);
 
     const user = await User.findById(decoded.userId).select("-password");
 
@@ -23,7 +23,7 @@ export const protectRoute = async (req, res, next) => {
     }
 
     req.user = user;
-    console.log("✅ User Authenticated:", req.user);
+    // console.log("✅ User Authenticated:", req.user);
     next();
   } catch (error) {
     console.error("❌ Error in protectRoute:", error.message);

@@ -3,7 +3,7 @@ import { createError } from "../utils/error.js";
 
 export const verifyToken = (req, res, next) => {
     const token = req.cookies.jwt; 
-    console.log("🔹 Received Token:", token);
+    // console.log("🔹 Received Token:", token);
     
     if (!token) {
         return next(createError(403, "No token provided"));
@@ -17,7 +17,7 @@ export const verifyToken = (req, res, next) => {
             role: decoded.role,
         };
         
-        console.log("✅ Decoded Token:", decoded);
+        // console.log("✅ Decoded Token:", decoded);
         req.user = decoded; // Attach user to request
         next();
     } catch (error) {

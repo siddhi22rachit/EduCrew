@@ -8,10 +8,9 @@ import {
   joinGroup,
   getGroupMembers,
   updateProgress,
-  // acceptInvitation,
-  // rejectInvitation,
-  // getUserGroups,
-  handleInvitation
+  handleInvitation,
+  getUserGroups,
+  deleteGroup
 } from '../controllers/groupController.js';
 
 const router = express.Router();
@@ -27,16 +26,9 @@ router.put('/:groupId/join', joinGroup);
 router.get('/:groupId/members', getGroupMembers);
 router.put('/:groupId/progress', updateProgress);
 router.get("/invite",handleInvitation);
-// // Accept invitation
-// router.post('/:groupId/accept', verifyToken, acceptInvitation);
 
-// // Reject invitation
-// router.post('/:groupId/reject', verifyToken,rejectInvitation);
-// router.get('/', getUserGroups);
-router.post('/:groupId/accept', verifyToken, acceptInvitation);
-
-router.post('/:groupId/reject', verifyToken,rejectInvitation);
 router.get('/user/:userId',verifyToken, getUserGroups);
+router.delete("/:groupId", verifyToken, deleteGroup);
 
 router.get('/test-auth', verifyToken, (req, res) => {
   res.status(200).json({

@@ -87,10 +87,10 @@ export const login = async (req, res) => {
     // Generate and set token
     const token = generateToken(user._id, res);
     // localStorage.setItem("token", token);
-    console.log("Generated token:", token);
+    // console.log("Generated token:", token);
     
     // Log the user ID for debugging
-    console.log('User logged in with ID:', user._id.toString());
+    // console.log('User logged in with ID:', user._id.toString());
     
     res.status(200).json({
       _id: user._id,

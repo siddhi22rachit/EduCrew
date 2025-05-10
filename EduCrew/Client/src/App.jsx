@@ -13,13 +13,14 @@ import TaskPage from "./pages/dashboard/createGroup/task";
 import ChatPage from "./pages/dashboard/chat";
 import VideoCall from "./pages/dashboard/Video_call/videoCall";
 import RoomPage from "./pages/dashboard/Video_call/Room";
-import CalendarPage from "./pages/dashboard/calender";
+
 import UpdateGroup from "./pages/dashboard/createGroup/UpdateGroup";
 import Layout from "./pages/dashboard/groupDashboard/layout"
 import GroupInvite from "./pages/dashboard/groupDashboard/groupInvite";
 import { useEffect } from "react";
 import { useAuthStore } from "./store/useAuthStore";
 import GroupPage from "./pages/dashboard/groupDashboard/groupPage";
+import CalendarPage from "./pages/dashboard/groupDashboard/calender";
 
 export default function App() {
   const checkAuth = useAuthStore((state) => state.checkAuth);

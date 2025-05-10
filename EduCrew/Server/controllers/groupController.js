@@ -5,8 +5,8 @@ import { createError } from "../utils/error.js";
 
 export const createGroup = async (req, res) => {
   try {
-    console.log("📥 Incoming request body:", req.body);
-    console.log("🔐 Authenticated user:", req.user);
+    // console.log("📥 Incoming request body:", req.body);
+    // console.log("🔐 Authenticated user:", req.user);
 
     const { name, memberEmails = [] } = req.body;
 
@@ -28,7 +28,7 @@ export const createGroup = async (req, res) => {
       memberEmails.push(adminEmail);
     }
 
-    console.log(`📝 Creating group "${name}" with members:`, memberEmails);
+    // console.log(`📝 Creating group "${name}" with members:`, memberEmails);
 
     // Create the members and progress arrays
     const members = memberEmails.map((email) => ({
@@ -52,7 +52,7 @@ export const createGroup = async (req, res) => {
     // Save the group to the database
     await newGroup.save();
 
-    console.log("✅ Group created with ID:", newGroup._id);
+    // console.log("✅ Group created with ID:", newGroup._id);
 
     // Send invitation emails to all except admin
     for (const email of memberEmails) {
@@ -513,21 +513,37 @@ export const updateProgress = async (req, res, next) => {
 
 export const getUserGroups = async (req, res, next) => {
   try {
-    const userId = req.user?.userId || req.user?.id;
-    const userEmail = req.user?.email;
-    
-    if (!userId && !userEmail) {
-      return next(createError(401, "Authentication required"));
+    const {userId} = req.params;
+    // Get the userEmail from the userId parameter
+    const user = await User.findById(userId);
+    if (!user) {
+      return next(createError(404, "User not found"));
     }
+    const userEmail = user.email;
+    // console.log("User email:", userEmail);
     
-    // Find groups where user is either a registered member or invited by email
+    
+
+    if (!userId  ) {
+      return next(createError(401, "Authentication required"));
+    } 
+    
+    
     const groups = await Group.find({
       $or: [
-        { admin: userId }, // User is admin
-        { 'members.user': userId }, // User is a registered member
-        { 'members.email': userEmail } // User was invited by email
+        { admin: userId },
+        { 
+          members: {
+            $elemMatch: {
+              email: userEmail,
+              accepted: true 
+            }
+          }
+        }
       ]
     }).select('_id name admin members');
+    // console.log("User groups:", groups);
+    
 
     // Populate admin info for each group
     await Group.populate(groups, {
@@ -555,3 +571,29 @@ export const getUserGroups = async (req, res, next) => {
     next(error);
   }
 };
+
+export const deleteGroup = async (req, res, next) => {
+  try {
+    const { groupId } = req.params;
+    const userId = req.user?.userId || req.user?.id;
+
+    const group = await Group.findById(groupId);
+    if (!group) {
+      return next(createError(404, "Group not found"));
+    }
+
+    if (group.admin.toString() !== userId) {
+      return next(createError(403, "Only admin can delete the group"));
+    }
+
+    await Group.findByIdAndDelete(groupId);
+
+    res.status(200).json({
+      success: true,
+      message: "Group deleted successfully",
+    });
+  } catch (error) {
+    next(error);
+  }
+    }
+

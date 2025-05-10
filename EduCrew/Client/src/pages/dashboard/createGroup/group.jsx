@@ -17,7 +17,7 @@ const Dashboard = () => {
       }
 
       try {
-        console.log("🔹 Fetching Group Details for:", groupId);
+        // console.log("🔹 Fetching Group Details for:", groupId);
 
         const response = await axios.get(`http://localhost:5000/api/groups/${groupId}`, {
           headers: {
@@ -26,7 +26,7 @@ const Dashboard = () => {
           withCredentials: true,
         });
 
-        console.log("🚀 Full Group Response Data:", response.data);
+        // console.log("🚀 Full Group Response Data:", response.data);
 
         if (response.data?.data) {
           setGroup(response.data.data);
