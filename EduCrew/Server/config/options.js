@@ -1,5 +1,5 @@
 export const corsOptions = {
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: process.env.CLIENT_URL || 'https://edu-crew.vercel.app',
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE']
   };
