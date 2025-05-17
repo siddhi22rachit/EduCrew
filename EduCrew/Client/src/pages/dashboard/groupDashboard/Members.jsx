@@ -56,7 +56,7 @@ const MembersBox = ({ groupId, members, admin }) => {
 
       if (action === 'accept') {
         const response = await axios.post(
-          `http://localhost:5000/api/groups/${groupId}/accept`,
+          ` https://educrew-2.onrender.com/api/groups/${groupId}/accept`,
           { email },
           {
             headers: { Authorization: `Bearer ${token}` },

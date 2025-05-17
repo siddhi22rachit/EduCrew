@@ -40,10 +40,10 @@ const CreateGroup = () => {
     }
 
     const token = localStorage.getItem("token");
-
+   
     try {
       const groupResponse = await axios.post(
-        "http://localhost:5000/api/groups/create",
+        " https://educrew-2.onrender.com/api/groups/create",
         { 
           name: groupName,
           memberEmails: memberEmails // Match the parameter name expected by backend

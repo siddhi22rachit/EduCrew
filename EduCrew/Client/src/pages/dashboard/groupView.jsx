@@ -26,7 +26,7 @@ const GroupView = () => {
         throw new Error("No authentication token found. Please log in again.")
       }
 
-      const response = await axios.get("http://localhost:5000/api/groups/user", {
+      const response = await axios.get(" https://educrew-2.onrender.com/api/groups/user", {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -77,7 +77,7 @@ const GroupView = () => {
         throw new Error("No authentication token found. Please log in again.")
       }
 
-      await axios.delete(`http://localhost:5000/api/groups/${groupId}`, {
+      await axios.delete(` https://educrew-2.onrender.com/api/groups/${groupId}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
 
