@@ -47,7 +47,7 @@ mongoose
 
 // Middleware
 app.use(cors({
-  origin: 'https://edu-crew.vercel.app/', 
+  origin: 'https://edu-crew.vercel.app', 
   credentials: true
 }));app.use(express.json());
 app.use(cookieParser());
