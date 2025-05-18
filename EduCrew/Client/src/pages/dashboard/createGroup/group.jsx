@@ -19,7 +19,7 @@ const Dashboard = () => {
       try {
         // console.log("🔹 Fetching Group Details for:", groupId);
 
-        const response = await axios.get(` https://educrew-2.onrender.com/api/groups/${groupId}`, {
+        const response = await axios.get(`https://educrew-2.onrender.com/api/groups/${groupId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
