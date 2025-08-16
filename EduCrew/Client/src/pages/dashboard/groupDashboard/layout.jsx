@@ -127,7 +127,7 @@ const Dashboard = () => {
         // console.log("🔹 Fetching Group Details for:", groupId);
 
         const response = await axios.get(
-          ` https://educrew-2.onrender.com/api/groups/${groupId}`,
+          `http://localhost:5000/api/groups/${groupId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

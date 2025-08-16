@@ -30,7 +30,7 @@ const GroupInvite = () => {
       try {
         const token = localStorage.getItem("token");
         const response = await axios.get(
-          ` https://educrew-2.onrender.com/api/groups/${groupId}`,
+          `http://localhost:5000/api/groups/${groupId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
@@ -69,7 +69,7 @@ const GroupInvite = () => {
      
 
       await axios.post(
-        ` https://educrew-2.onrender.com/api/groups/invite/accept`,
+        `http://localhost:5000/api/groups/invite/accept`,
         { groupId, userEmail }, // Body
         {
           headers: {

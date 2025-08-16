@@ -7,7 +7,7 @@ import { useParams, useSearchParams } from 'react-router-dom';
 import CustomCalendar from './calender';
 import axios from 'axios';
 
-const BASE_URL = ' https://educrew-2.onrender.com/api';
+const BASE_URL = 'http://localhost:5000/api';
 
 export default function CalendarPage() {
   const [tasks, setTasks] = useState([]);
