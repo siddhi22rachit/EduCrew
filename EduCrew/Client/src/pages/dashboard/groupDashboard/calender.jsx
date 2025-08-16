@@ -153,7 +153,7 @@ const TaskCalendar = () => {
         setLoading(true);
         const token = localStorage.getItem('token') || sessionStorage.getItem('token');
         
-        const response = await axios.get(`https://educrew-2.onrender.com/api/tasks/user/calendar`, {
+        const response = await axios.get(`/api/tasks/user/calendar`, {
           headers: {
             Authorization: `Bearer ${token}`
           }

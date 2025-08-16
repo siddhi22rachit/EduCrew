@@ -54,7 +54,7 @@ const GroupPage = () => {
         throw new Error('Invalid token');
       }
 
-      const response = await axiosInstance.get(`https://educrew-2.onrender.com/groups/user/${decoded.userId}`, {
+      const response = await axiosInstance.get(`/groups/user/${decoded.userId}`, {
         headers: {
           Authorization: `Bearer ${token}`
         },
