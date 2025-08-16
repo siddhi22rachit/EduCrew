@@ -43,7 +43,7 @@ const CreateGroup = () => {
    
     try {
       const groupResponse = await axios.post(
-         "https://educrew-2.onrender.com/api/groups/create",
+        " https://educrew-2.onrender.com/api/groups/create",
         { 
           name: groupName,
           memberEmails: memberEmails // Match the parameter name expected by backend
