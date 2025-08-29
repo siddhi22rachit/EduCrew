@@ -70,7 +70,7 @@ const GroupInvite = () => {
 
       await axios.post(
         `http://localhost:5000/api/groups/invite/accept`,
-        { groupId, userEmail }, // Body
+        { groupId, email:userEmail }, // Body
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -82,6 +82,9 @@ const GroupInvite = () => {
       navigate(`/dashboard/group/${groupId}`);
     } catch (err) {
       console.error("Error accepting invite", err);
+      console.log("Group ID:", groupId);
+console.log("User email:", userEmail);
+
     }
   };
 

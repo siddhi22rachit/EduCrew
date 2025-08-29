@@ -149,18 +149,11 @@ export const getGroupDetails = async (req, res, next) => {
 };
 
 export const acceptInvite = async (req, res) => {
-  const { groupId, userEmail } = req.body;
+  const { groupId } = req.body;
 
   if (!groupId) {
     return res.status(400).json({ message: "groupId is required" });
   }
-
-  if (!userEmail) {
-    return res.status(400).json({ message: "userEmail is required" });
-  }
-
-  console.log("📩 Received from frontend - Group ID:", groupId);
-  console.log("📩 Received from frontend - User Email:", userEmail);
 
   try {
     const group = await Group.findById(groupId);
@@ -169,21 +162,20 @@ export const acceptInvite = async (req, res) => {
       return res.status(404).json({ message: "Group not found" });
     }
 
-    // ✅ Find the member using email instead of userId
-    const memberIndex = group.members.findIndex(
-      (member) => member.email === userEmail && member.accepted === false
-    );
+    // Find the first member who has not accepted yet
+    const member = group.members.find((m) => m.accepted === false);
 
-    if (memberIndex === -1) {
-      return res.status(400).json({ message: "Invite not found or already accepted" });
+    if (!member) {
+      return res.status(400).json({ message: "No pending invites found" });
     }
 
-    // ✅ Mark as accepted
-    group.members[memberIndex].accepted = true;
+    // Mark as accepted
+    member.accepted = true;
     await group.save();
 
     return res.status(200).json({
       message: "✅ Invite accepted successfully",
+      memberEmail: member.email, // <-- This returns the correct member email
       group,
     });
   } catch (error) {
@@ -191,6 +183,7 @@ export const acceptInvite = async (req, res) => {
     return res.status(500).json({ message: "Server error", error });
   }
 };
+
 
 // Accept invitation and join group
 // export const inviteToGroup = async (req, res, next) => {
