@@ -12,8 +12,7 @@ import { fileURLToPath } from 'url';
 import authRoutes from './routes/auth.route.js';
 import groupRoutes from './routes/group.route.js';
 import taskRoutes from './routes/task.route.js';
-import chatRoutes from './routes/chat.route.js';
-import { initializeSocket } from './socket/socketHandler.js';
+
 import { errorHandler } from './middleware/errorHandler.js';
 import { corsOptions, mongoOptions } from './config/options.js';
 import  resourceRoutes  from './routes/resource.route.js';
@@ -31,13 +30,7 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 
-// Socket.IO initialization
-const io = new Server(server, {
-  cors: corsOptions
-});
 
-// Initialize socket handlers
-initializeSocket(io);
 
 // MongoDB Connection
 mongoose
@@ -58,7 +51,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/groups', groupRoutes);
 app.use('/api/tasks', taskRoutes);
 app.use('/api/resources', resourceRoutes);
-app.use('/api/chat', chatRoutes); 
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
