@@ -58,7 +58,7 @@ export default function LoginPage() {
         {/* Logo */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-500 via-blue-500 to-cyan-500 text-transparent bg-clip-text">
-            StudySync
+            EduCrew
           </h1>
         </div>
 

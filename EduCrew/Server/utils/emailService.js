@@ -3,18 +3,23 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
- export const sendEmail = async ({ email, groupName, groupId }) => {
+export const sendEmail = async ({ email, groupName, groupId }) => {
   try {
     // Construct your frontend link
     const frontendUrl = `${process.env.CLIENT_URL}/dashboard/group/invite/${groupId}`;
 
-    // Create transporter
+    // Create transporter with SSL fix
     const transporter = nodemailer.createTransport({
-      service: "gmail",
+      host: "smtp.gmail.com",
+      port: 587,
+      secure: false,
       auth: {
         user: process.env.EMAIL_USER,
         pass: process.env.EMAIL_PASS,
       },
+      tls: {
+        rejectUnauthorized: false
+      }
     });
 
     // Email content
@@ -46,4 +51,3 @@ dotenv.config();
     return false;
   }
 };
-

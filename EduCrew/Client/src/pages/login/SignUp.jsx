@@ -54,7 +54,7 @@ const SignUpPage = () => {
       
       <div className="w-full max-w-md p-8">
         <h1 className="text-center text-3xl font-bold mb-2 bg-gradient-to-r from-purple-500 to-cyan-500 text-transparent bg-clip-text">
-          StudySync
+        EduCrew
         </h1>
         
         <div className="text-center mb-8">
